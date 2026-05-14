@@ -1,0 +1,1128 @@
+/* GenerateReportPdf.css - Styles for PDF Report Component */
+/* GenerateReportPdf.css - Landscape/Horizontal Layout */
+
+/* Ensure college abbreviations are properly displayed */
+.college-abbrev {
+  font-weight: bold;
+  color: #01311d;
+  min-width: 50px;
+  display: inline-block;
+}
+
+/* Filter Container */
+.pdf-report-summary{
+  background: #BEE5B9;
+  border-radius: 10px;
+}
+.pdf-container {
+  position: relative;
+  background: #f5f5f5;
+  padding: 0;
+  margin: 0;
+}
+
+.pdf-report {
+  background: white;
+  padding: 20px;
+  margin: 0 auto;
+  font-family: 'Arial', 'Helvetica', sans-serif;
+  color: #333;
+  max-width: 100%;
+}
+
+/* Landscape orientation specific */
+.pdf-report.landscape {
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* Header Styles */
+.pdf-header {
+  margin-bottom: 20px;
+}
+
+.pdf-logos-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pdf-left-logos {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.pdf-logo-box {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pdf-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pdf-logo-placeholder {
+  font-size: 12px;
+  font-weight: bold;
+  color: #999;
+}
+
+.pdf-center-text {
+  text-align: center;
+  flex: 1;
+}
+
+.pdf-university-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #01311d;
+  letter-spacing: 2px;
+  font-family: 'Cinzel', serif;
+}
+
+.pdf-system-title {
+  font-size: 12px;
+  color: #548772;
+  letter-spacing: 1px;
+  margin-top: 5px;
+}
+
+/* Title Section */
+.pdf-title-row {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.pdf-main-title {
+  font-size: 24px;
+  color: #01311d;
+  margin-bottom: 10px;
+  font-family: 'Cinzel', serif;
+}
+
+.pdf-subtitle {
+  font-size: 11px;
+  color: #666;
+  line-height: 1.5;
+  max-width: 90%;
+  margin: 0 auto;
+}
+/* Stats Section - Two Column Layout */
+.pdf-stats-section {
+  display: flex;
+  gap: 30px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.pdf-stats-left {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  width: 100%;
+  align-items: stretch;
+  padding: 20px;
+}
+
+/* Main stats box (Students on Campus) */
+.pdf-green-box {
+ background-color: rgba(1, 49, 29, 0.85);
+  opacity: 0.85;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  flex: 1; /* Changed from flex: 2 to flex: 1 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Small stats box (Total Entries) */
+.pdf-green-box-small {
+ background-color: rgba(1, 49, 29, 0.85);
+  opacity: 0.85;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  flex: 1; /* Changed from flex: 1 to flex: 1 (same) */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Date range box */
+.pdf-green-box-small-date {
+ background-color: rgba(1, 49, 29, 0.85);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    flex: 1;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    align-items: flex-start;
+    flex-wrap: nowrap;
+}
+
+/* Big number styling */
+.pdf-big-number {
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Date range specific number styling */
+.pdf-green-box-small-date .pdf-big-number {
+  font-size: 20px; /* Increased from 18px for better balance */
+  line-height: 1.3;
+}
+
+/* Text styling for all boxes */
+.pdf-green-box div,
+.pdf-green-box-small div,
+.pdf-green-box-small-date div {
+  color: white;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .pdf-stats-left {
+    flex-direction: column;
+  }
+  
+  .pdf-green-box,
+  .pdf-green-box-small,
+  .pdf-green-box-small-date {
+    width: 100%;
+    flex: auto;
+  }
+}
+/* Chart 1 - Department Distribution */
+.pdf-chart-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #01311d;
+  margin-bottom: 15px;
+}
+
+.pdf-chart-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pdf-progress-bar-container {
+  width: 100%;
+}
+
+.pdf-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.pdf-progress-bar-bg {
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 20px;
+}
+
+.pdf-progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* Section Spacing */
+.pdf-section-spacing {
+  page-break-inside: avoid;
+}
+
+.pdf-section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #01311d;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #548772;
+}
+
+/* Section Header */
+.pdf-section-spacing {
+  margin: 15px 0;
+  width: 100%;
+}
+
+.pdf-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pdf-section-indicator {
+  width: 5px;
+  height: 32px;
+  border-radius: 3px;
+}
+
+.pdf-section-title-wrapper {
+  flex: 1;
+}
+
+.pdf-section-title {
+  margin: 0;
+  font-size: 16px;
+  color: #01311d;
+  font-weight: bold;
+}
+
+.pdf-section-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 10px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Table Container */
+.pdf-table-container {
+  width: 100%;
+  overflow-x: visible;
+  margin-bottom: 20px;
+}
+
+/* Main Table Styles */
+.pdf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9px;
+  table-layout: auto;
+  margin-bottom: 10px;
+  color: #000;
+}
+
+/* Table Header */
+.pdf-table th {
+  background-color: #01311d;
+  color: white;
+  padding: 8px 6px;
+  border: 1px solid #2a5a1a;
+  font-weight: bold;
+  text-align: center;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* Table Cells */
+.pdf-table td {
+  padding: 6px;
+  border: 1px solid #ddd;
+  vertical-align: top;
+  font-size: 9px;
+  color: #000;
+  line-height: 1.3;
+}
+
+
+/* Allow text wrapping */
+.pdf-table td {
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  color: #000;
+}
+
+/* Column specific alignment */
+.pdf-td-no,
+.pdf-th-no {
+  text-align: center;
+  width: 4%;
+}
+
+.pdf-td-id,
+.pdf-th-id {
+  text-align: center;
+  width: 10%;
+}
+
+.pdf-td-name,
+.pdf-th-name {
+  text-align: left;
+  width: 18%;
+}
+
+.pdf-td-dept,
+.pdf-th-dept {
+  text-align: left;
+  width: 22%;
+}
+
+.pdf-td-year,
+.pdf-th-year {
+  text-align: center;
+  width: 6%;
+}
+
+.pdf-td-time-entry,
+.pdf-th-time-entry,
+.pdf-td-time-exit,
+.pdf-th-time-exit {
+  text-align: center;
+  width: 10%;
+}
+
+.pdf-td-method,
+.pdf-th-method {
+  text-align: center;
+  width: 10%;
+}
+
+/* Row striping */
+.pdf-row-even {
+  background-color: #ffffff;
+}
+
+.pdf-row-odd {
+  background-color: #f5f9f7;
+}
+
+/* Time color highlights */
+.pdf-td-time-entry {
+  color: #2E7D32;
+  font-weight: 500;
+}
+
+.pdf-td-time-exit {
+  color: #D99201;
+  font-weight: 500;
+}
+
+/* Empty state */
+.pdf-row-empty {
+  background-color: #ffffff;
+}
+
+.pdf-empty-message {
+  text-align: center;
+  padding: 30px;
+  color: #999;
+  font-size: 10px;
+}
+
+/* Footer */
+.pdf-footer-row {
+  background-color: #e8f5e9;
+}
+
+.pdf-footer-message {
+  padding: 6px;
+  text-align: center;
+  font-size: 9px;
+  font-style: italic;
+  color: #555;
+}
+
+/* Print/PDF specific styles */
+@media print {
+  .pdf-table {
+    page-break-inside: auto;
+  }
+  
+  .pdf-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  .pdf-table thead {
+    display: table-header-group;
+  }
+  
+  .pdf-table tfoot {
+    display: table-footer-group;
+  }
+  
+  .pdf-table th,
+  .pdf-table td {
+    font-size: 8pt;
+    padding: 4px;
+  }
+  
+  .pdf-section-title {
+    font-size: 14pt;
+  }
+  
+  .pdf-section-subtitle {
+    font-size: 9pt;
+  }
+}
+
+/* For tables with many columns - slightly smaller text */
+@media (max-width: 1000px) {
+  .pdf-table th,
+  .pdf-table td {
+    font-size: 8px;
+    padding: 4px;
+  }
+}
+
+/* Logs table specific - when showing both entry and exit */
+.pdf-table-logs th,
+.pdf-table-logs td {
+  font-size: 8px;
+}
+
+/* Ensure long text wraps properly */
+.pdf-td-name,
+.pdf-td-dept {
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Keep numeric data compact */
+.pdf-td-no,
+.pdf-td-id,
+.pdf-td-year {
+  white-space: nowrap;
+}
+
+/* Make time and method columns more compact */
+.pdf-td-time-entry,
+.pdf-td-time-exit {
+  white-space: nowrap;
+  font-size: 8px;
+}
+
+.pdf-td-method {
+  white-space: nowrap;
+  font-size: 8px;
+}
+
+/* Insights Box */
+.pdf-insights-box {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+  border-left: 4px solid #548772;
+}
+
+.pdf-insight-text {
+  font-weight: bold;
+  color: #01311d;
+  font-size: 12px;
+}
+
+/* Two Column Layout for Method Chart and Student Logs */
+.pdf-two-column {
+  display: flex;
+  gap: 30px;
+  margin: 25px 0;
+  flex-wrap: wrap;
+}
+
+.pdf-column-left {
+  flex: 0.8;
+  min-width: 250px;
+}
+
+.pdf-column-right {
+  flex: 1.5;
+  min-width: 400px;
+  overflow-x: auto;
+}
+
+/* Method Chart Styles */
+.pdf-method-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.pdf-method-bar {
+  width: 100%;
+}
+
+.pdf-method-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.pdf-method-bar-bg {
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  height: 25px;
+}
+
+/* Student Logs Table - Small Font for Better Fit */
+.pdf-table-small {
+  font-size: 9px;
+}
+
+.pdf-table-small th,
+.pdf-table-small td {
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+
+.pdf-table-small td:first-child,
+.pdf-table-small th:first-child {
+  width: 40px;
+}
+
+/* Footer */
+.pdf-footer {
+  margin-top: 30px;
+  padding-top: 15px;
+  border-top: 2px solid #01311d;
+}
+
+.pdf-footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pdf-footer-left {
+  flex: 1;
+}
+
+.pdf-footer-right {
+  text-align: right;
+}
+
+.pdf-footer-text {
+  font-size: 9px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .pdf-two-column {
+    flex-direction: column;
+  }
+  
+  .pdf-column-left,
+  .pdf-column-right {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .pdf-stats-section {
+    flex-direction: column;
+  }
+  
+  .pdf-logos-row {
+    flex-direction: column;
+  }
+  
+  .pdf-left-logos {
+    justify-content: center;
+  }
+}
+
+@media print {
+  .pdf-container {
+    background: white;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .pdf-report {
+    padding: 15px;
+  }
+  
+  .pdf-stats-section,
+  .pdf-two-column {
+    break-inside: avoid;
+  }
+  
+  .pdf-section-spacing {
+    break-inside: avoid;
+  }
+  
+  .pdf-table,
+  .pdf-table-small {
+    break-inside: avoid;
+  }
+}
+/* Container Styles */
+.pdf-container {
+  min-height: 100vh;
+  background: #e0e0e0;
+  padding: 0;
+  margin: 0;
+  font-family: 'Arial', 'Helvetica', sans-serif;
+}
+
+/* Main Report Container */
+.pdf-report {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  font-family: 'Arial', 'Helvetica', sans-serif;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Section */
+.pdf-header {
+}
+/* Logos Row */
+.pdf-logos-row {
+  display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.pdf-left-logos {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.pdf-logo-box {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.pdf-logo-img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* For logos that are wider than tall */
+.pdf-logo-img-wide {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+}
+
+/* For logos that are taller than wide */
+.pdf-logo-img-tall {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+}
+
+/* Center Text - prevents stretching */
+.pdf-center-text {
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+}
+
+.pdf-university-name {
+  font-size: 18px;
+  font-weight: bolder;
+  color: #01311d;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #01311d;
+  display: inline-block;
+  font-family: 'Cinzel', sans-serif;
+  padding-bottom: 3px;
+}
+
+.pdf-system-title {
+  font-size: 11px;
+  color: #01311d;
+  font-family: 'Cinzel', sans-serif;
+  font-weight: bold;
+}
+
+/* Logo placeholder */
+.pdf-logo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #999;
+}
+
+
+
+
+/* Title Row */
+.pdf-title-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  margin-bottom: 40px;
+}
+
+.pdf-main-title {
+  font-size: 38px;
+  font-weight: bold;
+  margin: 0;
+  letter-spacing: 1px;
+  color: #01311d;
+  font-family: 'Oswald', serif;
+}
+
+.pdf-subtitle {
+  color: #555;
+  font-size: 10px;
+  line-height: 1.4;
+  margin: 0;
+  text-align: right;
+  max-width: 45%;
+}
+
+/* Stats Section */
+.pdf-stats-section {
+     display: flex;
+    gap: 30px;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+/* Green Boxes */
+.pdf-green-box {
+  background-color: rgba(1, 49, 29, 0.85);
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-green-box-small {
+  background-color: rgba(1, 49, 29, 0.85);
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdf-big-number {
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+}
+.span{
+  font-size: 14px;
+  color: white;
+}
+
+/* Section Titles */
+.pdf-section-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #01311d;
+}
+
+.pdf-chart-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  margin-top: 0;
+  color: #01311d;
+}
+
+/* Progress Bars */
+.pdf-progress-bar-container {
+  margin-bottom: 12px;
+}
+
+.pdf-progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+}
+
+.pdf-progress-bar-bg {
+  width: 100%;
+  height: 18px;
+  background-color: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pdf-progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+/* Tables */
+.pdf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.pdf-table th {
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: bold;
+  color: white;
+  background-color: #01311d;
+}
+
+.pdf-table td {
+  padding: 10px 8px;
+  color: #333;
+}
+
+.pdf-table-left th {
+  text-align: left;
+}
+
+.pdf-table-left td {
+  text-align: left;
+}
+
+.pdf-table-right th {
+  text-align: right;
+}
+
+.pdf-table-right td {
+  text-align: right;
+}
+
+/* Method Bars */
+.pdf-method-bar {
+  margin-bottom: 15px;
+}
+
+.pdf-method-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+.pdf-method-bar-bg {
+  width: 100%;
+  height: 20px;
+  background-color: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* Insights Box */
+.pdf-insights-box {
+  margin-top: 20px;
+  background: #e8f5e9;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #2e7d32;
+}
+
+.pdf-insight-text {
+  font-size: 12px;
+  font-weight: bold;
+  color: #01311d;
+}
+
+/* Section Spacing */
+.pdf-section-spacing {
+  padding: 25px 30px;
+}
+
+.pdf-last-section {
+  padding: 25px 30px 35px 30px;
+}
+
+/* Print Styles */
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .pdf-report {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  
+  .pdf-container {
+    background: white;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .pdf-header {
+    padding: 20px;
+  }
+  
+  .pdf-section-spacing,
+  .pdf-last-section {
+    padding: 15px 20px;
+  }
+  
+  .pdf-green-box,
+  .pdf-green-box-small {
+    box-shadow: none;
+    border: 1px solid #01311d;
+  }
+  
+  .pdf-insights-box {
+    background: #f0f0f0;
+    border-left: 4px solid #01311d;
+  }
+}
+
+/* Footer Styles - Minimalist */
+.pdf-footer {
+  margin-top: 25px;
+  padding: 15px 30px;
+  background: #fcfbf4;
+  border-top: 1px solid #e0e0e0;
+}
+
+.pdf-footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.pdf-footer-left {
+  flex: 2;
+}
+
+.pdf-footer-right {
+  flex: 1;
+  text-align: right;
+}
+
+.pdf-footer-text {
+  font-size: 8.5px;
+  color: #666;
+  font-weight: 500;
+}
+
+.pdf-footer-separator {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  background-color: #548772;
+  border-radius: 50%;
+  margin: 0 8px;
+  vertical-align: middle;
+}
+
+.pdf-footer-right .pdf-footer-text {
+  font-weight: 600;
+  color: #01311d;
+}
+
+@media (max-width: 600px) {
+  .pdf-footer {
+    padding: 12px 20px;
+  }
+  
+  .pdf-footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .pdf-footer-left,
+  .pdf-footer-right {
+    text-align: center;
+  }
+}
+
+@media print {
+  .pdf-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #ccc;
+  }
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.status-badge-open {
+  background: rgba(24, 160, 133, 0.15);
+  color: #188085;
+  border: 1px solid rgba(24, 160, 133, 0.25);
+}
+
+.status-badge-closed {
+  background: rgba(229, 57, 53, 0.12);
+  color: #e53935;
+  border: 1px solid rgba(229, 57, 53, 0.2);
+}
+
+.status-badge-warning {
+  background: rgba(251, 192, 45, 0.16);
+  color: #b8860b;
+  border: 1px solid rgba(251, 192, 45, 0.24);
+}
+
+.status-badge-missing-exit {
+  background: rgba(26, 115, 232, 0.12);
+  color: #1a73e8;
+  border: 1px solid rgba(26, 115, 232, 0.18);
+}
