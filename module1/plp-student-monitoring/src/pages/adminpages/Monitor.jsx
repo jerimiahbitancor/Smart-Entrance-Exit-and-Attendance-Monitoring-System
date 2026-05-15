@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import "../../css/RealTimeMonitor.css";
 import '../../css/Monitor.css';
 import { reportToXml, xmlToReport, downloadXml } from '../../utils/xmlReportUtils';
-
+//hi i added a feature branch for monitor page
 // Helper function to get Philippine date range for today
 const getTodayPhilippineRange = () => {
   const now = new Date();
