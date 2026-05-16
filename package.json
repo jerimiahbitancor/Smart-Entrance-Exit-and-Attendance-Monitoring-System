@@ -1,0 +1,21 @@
+{
+  "name": "smart-entrance-exit-attendance-system",
+  "version": "1.0.0",
+  "description": "Integrated Smart Entrance, Exit, and Attendance Monitoring System with Data Analytics",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run face-service\" \"npm run attendance-api\" \"npm run attendance-client\"",
+    "server": "cd module1/backend && npm run dev",
+    "client": "cd module1/plp-student-monitoring && npm run dev",
+    "face-service": "cd module1/python && python face_service.py",
+    "attendance-api": "cd module2/facial_attendance_api && php -S localhost:8000",
+    "attendance-client": "cd module2/attendance_application && npm start",
+    "install-all": "npm run install-backend && npm run install-client && npm run install-attendance",
+    "install-backend": "cd module1/backend && npm install",
+    "install-client": "cd module1/plp-student-monitoring && npm install",
+    "install-attendance": "cd module2/attendance_application && npm install",
+    "python-setup": "cd module1/python && pip install fastapi uvicorn opencv-python numpy"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
