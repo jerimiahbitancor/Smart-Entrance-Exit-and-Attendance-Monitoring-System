@@ -229,7 +229,6 @@ function EntryExitPage() {
 
   return (
     <div className="admin-page">
-
       <div className="page-header-section d-flex justify-content-between align-items-center">
         <h1 className="page-title">Entrance &amp; Exit Logs</h1>
         <Button

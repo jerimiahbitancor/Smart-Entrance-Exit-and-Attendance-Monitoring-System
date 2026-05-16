@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LogProvider } from "./context/LogContext";
 import { CameraProvider } from "./context/CameraContext.jsx";
+// aklsfhiashfioahfoh
 
 // Layout
 import DashboardLayout from "./layouts/DashboardLayout";
