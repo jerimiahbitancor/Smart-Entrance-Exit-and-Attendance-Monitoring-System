@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { FiLogIn, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
 import '../css/LandingPage.css';
 
+// add later theattendace monitoring sa landing page....
+
 const LandingPage = () => {
   return (
     <div className="landing-container">
