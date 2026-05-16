@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LogProvider } from "./context/LogContext";
 import { CameraProvider } from "./context/CameraContext.jsx";
 // aklsfhiashfioahfoh
+// haduasgfuihga
 
 // Layout
 import DashboardLayout from "./layouts/DashboardLayout";
