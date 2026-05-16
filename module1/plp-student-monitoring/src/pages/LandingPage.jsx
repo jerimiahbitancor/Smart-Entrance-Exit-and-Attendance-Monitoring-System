@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { FiLogIn, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
 import '../css/LandingPage.css';
 
+// This is the landing page component that serves as the entry point for users to select their desired mode (Entrance, Exit, or Log in). It provides a visually appealing interface with clear navigation options.
+
 const LandingPage = () => {
   return (
     <div className="landing-container">
