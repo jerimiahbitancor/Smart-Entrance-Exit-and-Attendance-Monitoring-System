@@ -70,7 +70,7 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     if (!selectedRole) {
       Swal.fire({
         icon: 'warning',
@@ -80,11 +80,11 @@ export default function Login() {
       });
       return;
     }
-
+  
     setLoading(true);
-
+  
     const result = await login(email, password, selectedRole);
-
+  
     if (result.success) {
       await Swal.fire({
         icon: 'success',
@@ -93,7 +93,36 @@ export default function Login() {
         timer: 1500,
         showConfirmButton: false,
       });
-      navigate(result.redirect);
+      
+      // ✅ ONLY ADD THIS - For EAMS Admin
+      if (selectedRole === 'EAMS Admin') {
+        // Create session data
+        const sessionData = {
+          email: email,
+          role: selectedRole,
+          loggedIn: true,
+          timestamp: Date.now(),
+          user: result.user
+        };
+        
+        // Convert to base64 for URL safety
+        const encodedSession = btoa(JSON.stringify(sessionData));
+        
+        // Show success message
+        await Swal.fire({
+          icon: 'success',
+          title: 'Login Successful!',
+          text: `Welcome back, ${selectedRole}! Redirecting to Attendance System...`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        
+        // Pass session via URL parameter
+        window.location.href = `http://localhost:3000?session=${encodedSession}`;
+      } else {
+        // Super Admin and EEMS Admin - use existing redirect
+        navigate(result.redirect);
+      }
     } else {
       Swal.fire({
         icon: 'error',
@@ -102,7 +131,7 @@ export default function Login() {
         confirmButtonColor: '#2b5a2b',
       });
     }
-
+  
     setLoading(false);
   };
 
