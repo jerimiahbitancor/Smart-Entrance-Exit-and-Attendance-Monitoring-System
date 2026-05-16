@@ -4,5 +4,6 @@ function cosineSimilarity(a, b) {
     const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
     return dot / (normA * normB);
   }
+  //akshfuihfuigwuifhguhiwhyfuoiuhq
   
   module.exports = { cosineSimilarity };
