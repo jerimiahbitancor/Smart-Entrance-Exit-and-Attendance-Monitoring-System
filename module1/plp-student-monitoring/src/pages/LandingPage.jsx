@@ -63,7 +63,7 @@ const LandingPage = () => {
                 <div className="landing-card-body">
                   <div className="landing-card-label">Attendance Monitoring</div>
                   <div className="landing-card-divider"></div>
-                  <div className="landing-card-desc">Track and record employee attendance with real-time updates</div>
+                  <div className="landing-card-desc">Track & Record Employee attendance in real time.</div>
                 </div>
               </div>
             </Link>
