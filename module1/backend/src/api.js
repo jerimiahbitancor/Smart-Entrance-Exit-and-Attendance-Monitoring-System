@@ -297,7 +297,7 @@ export const getLocations = async () => {
 
 export const getDepartments = async () => {
   try {
-    const { data } = await api.get("/department.php");
+    const { data } = await api.get("/departments.php");
     return data;
   } catch (error) {
     handleError(error);
@@ -313,9 +313,9 @@ export const getPositions = async () => {
   }
 };
 
-export const addDepartment = async ({ department_name }) => {
+export const addDepartment = async ({ dept_name, dept_code }) => {
   try {
-    const { data } = await api.post("/department.php", { department_name });
+    const { data } = await api.post("/departments.php", { dept_name, dept_code });
     return data;
   } catch (error) {
     handleError(error);
@@ -340,10 +340,11 @@ export const addLocation = async ({ location_name }) => {
   }
 };
 
-export const updateDepartment = async (id, { department_name }) => {
+export const updateDepartment = async (id, { dept_name, dept_code }) => {
   try {
-    const { data } = await api.put(`/department.php?id=${id}`, {
-      department_name,
+    const { data } = await api.put(`/departments.php?id=${id}`, {
+      dept_name,
+      dept_code,
     });
     return data;
   } catch (error) {
@@ -353,7 +354,7 @@ export const updateDepartment = async (id, { department_name }) => {
 
 export const deleteDepartment = async (id) => {
   try {
-    const { data } = await api.delete(`/department.php?id=${id}`);
+    const { data } = await api.delete(`/departments.php?id=${id}`);
     return data;
   } catch (error) {
     handleError(error);

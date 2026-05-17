@@ -205,14 +205,11 @@ function EmployeesArchive({ onNavigate }) {
                 onChange={e => setSearchTerm(e.target.value)}
               />
             </Col>
-            <Col md={3}>
-              <Form.Select
-                value={selectedDepartment}
-                onChange={e => setSelectedDepartment(e.target.value)}
-              >
+            <Col md={4}>
+              <Form.Select value={selectedDepartment} onChange={e => setSelectedDepartment(e.target.value)}>
                 <option>All Departments</option>
-                {departmentCounts.map((d, i) => (
-                  <option key={i} value={d.name}>{d.name}</option>
+                {departments.map(d => (
+                  <option key={d.id} value={d.dept_name}>{d.dept_name}</option>
                 ))}
               </Form.Select>
             </Col>

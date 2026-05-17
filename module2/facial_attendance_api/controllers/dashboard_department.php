@@ -17,16 +17,16 @@ try {
 
     $query = "
         SELECT 
-            d.department_ID,
-            d.department_name,
+            d.id AS department_ID,
+            d.dept_name AS department_name,
             COUNT(CASE WHEN e.employee_ID IS NOT NULL $archivedCondition THEN e.employee_ID END) AS totalEmployees,
             COUNT(a.attendance_ID) AS presentCount
-        FROM department d
-        LEFT JOIN employees e ON d.department_ID = e.department_ID
+        FROM departments d
+        LEFT JOIN employees e ON d.id = e.department_ID
         LEFT JOIN attendance a 
             ON e.employee_ID = a.employee_ID
             AND DATE(a.time_in) = ?
-        GROUP BY d.department_ID
+        GROUP BY d.id
     ";
 
     $stmt = $conn->prepare($query);

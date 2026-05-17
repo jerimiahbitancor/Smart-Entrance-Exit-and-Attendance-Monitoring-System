@@ -29,12 +29,12 @@ if ($request_method === 'GET') {
                 a.method,
                 e.employee_code,
                 CONCAT(e.employee_firstName, ' ', e.employee_LastName) AS fullName,
-                d.department_name,
+                d.dept_name AS department_name,
                 ev.event_name,
                 l.location AS location_name
             FROM attendance a
             JOIN employees e ON a.employee_ID = e.employee_ID
-            LEFT JOIN department d ON e.department_ID = d.department_ID
+            LEFT JOIN departments d ON e.department_ID = d.id
             LEFT JOIN events ev ON a.event_ID = ev.event_ID
             LEFT JOIN location l ON ev.location_ID = l.location_ID
         ";

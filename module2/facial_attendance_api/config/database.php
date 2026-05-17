@@ -1,7 +1,7 @@
 <?php
 
 $host = "localhost";
-$db_name = "employee_attendance";  
+$db_name = "integ";  
 $username = "root";
 $password = ""; 
 
