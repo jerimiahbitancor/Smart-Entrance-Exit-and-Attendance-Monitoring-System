@@ -31,6 +31,10 @@ import Users from "./pages/superadminpages/Users";
 import SystemSettings from "./pages/superadminpages/SystemSettings/SystemSettings";
 import SuperDashboard from "./pages/superadminpages/SuperDashboard";
 import SuperStudents from "./pages/superadminpages/SuperStudents";
+import Employees from "./pages/superadminpages/Employees";
+
+// Employee Attendance Monitoring Pages
+import EAMSDashboard from "./pages/superadminpages/EAMSDashboard";
 
 // Components
 import RegisterStudent from "./components/RegisterStudent";
@@ -131,6 +135,16 @@ function AppRoutes() {
         <Route path="/superstudents" element={
           <ProtectedRoute allowedRoles={['Super Admin']}>
             <SuperStudents />
+          </ProtectedRoute>
+        } />
+        <Route path="/employees" element={
+          <ProtectedRoute allowedRoles={['Super Admin']}>
+            <Employees />
+          </ProtectedRoute>
+        } />
+        <Route path="/EAMSDashboard" element={
+          <ProtectedRoute allowedRoles={['Super Admin']}>
+            <EAMSDashboard />
           </ProtectedRoute>
         } />
       </Route>
