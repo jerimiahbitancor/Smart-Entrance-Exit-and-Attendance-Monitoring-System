@@ -5,6 +5,7 @@ import { FiLogIn, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
 import '../css/LandingPage.css';
 
 // add later theattendace monitoring sa landing page....
+// This is the landing page component that serves as the entry point for users to select their desired mode (Entrance, Exit, or Log in). It provides a visually appealing interface with clear navigation options.
 
 const LandingPage = () => {
   return (
