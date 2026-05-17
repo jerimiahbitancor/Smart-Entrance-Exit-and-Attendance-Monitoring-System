@@ -9,7 +9,7 @@
     "client-web": "cd module1/plp-student-monitoring && npm run dev",
     "client-electron": "cd module1/plp-student-monitoring && npm run electron-dev",
     "face-service": "cd module1/python && python face_service.py",
-    "attendance-api": "cd module2/facial_attendance_api && php -S localhost:8000",
+    "attendance-api": "cd module2/facial_attendance_api && D:\\xampp\\php\\php.exe -S localhost:8000",
     "attendance-client": "cd module2/attendance_application && npm start",
     "build-electron": "cd module1/plp-student-monitoring && npm run build-electron",
     "package-electron": "cd module1/plp-student-monitoring && npm run package",
@@ -25,7 +25,10 @@
     "status": "echo '=== System Status ===' && echo 'Backend: http://localhost:3000' && echo 'Electron/Web: http://localhost:5173' && echo 'Face Service: http://localhost:5000' && echo 'Attendance API: http://localhost:8000'"
   },
   "devDependencies": {
+    "and": "^0.0.3",
     "concurrently": "^8.2.2",
-    "kill-port": "^2.0.1"
+    "install": "^0.13.0",
+    "kill-port": "^2.0.1",
+    "npm": "^11.14.1"
   }
 }

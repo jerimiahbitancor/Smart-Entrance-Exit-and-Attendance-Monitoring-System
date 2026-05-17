@@ -1,12 +1,9 @@
-// src/App.jsx
+// module1/plp-student-monitoring/src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LogProvider } from "./context/LogContext";
 import { CameraProvider } from "./context/CameraContext.jsx";
-// aklsfhiashfioahfoh
-// haduasgfuihga
 
-// hfuweehahfjwejkshgfuwiebr7iwq3tbryuqwt735trbqw3uibtryuwqtb5uyirffwqbt3uy3rf
 
 // Layout
 import DashboardLayout from "./layouts/DashboardLayout";
