@@ -90,7 +90,7 @@ export default function Sidebar() {
         { icon: <FiBarChart2 />, label: "Analytics & Reports", path: "/analytics" },
         { type: 'separator', label: 'Employee Attendance Monitoring' },
         { icon: <FiHome />, label: "Attendance Dashboard", path: "/EAMSDashboard" },
-        { icon: <FiFileText />, label: "Attendance Records", path: "/employee-records" },
+        { icon: <FiFileText />, label: "Entry-Exit Records", path: "/entryexit" },
         { icon: <FiBarChart2 />, label: "Attendance Reports", path: "/employee-reports" },
       ];
     } 

@@ -3,19 +3,9 @@ import { Row, Col, Card, Button, Modal, Form, Badge } from 'react-bootstrap';
 import { getEventAttendance, getEmployees, getDepartments, getEventSetup, setupEventEmployees, activateEvent, deactivateEvent, updateEvent } from '../api';
 import './ccs/event.css';
 
-const PLP_LOGO_KEY            = 'plp_logo';
-const DEPT_LOGOS_KEY          = 'dept_logos';
-const NAME_KEY                = 'institution_name';
-
-// PDF Export settings keys (managed in Settings → PDF Export tab)
-const PDF_PASIG_LOGO_KEY      = 'pdf_pasig_logo';
-const PDF_WORDMARK_KEY        = 'pdf_wordmark_logo';
-const PDF_OFFICE_NAME_KEY     = 'pdf_office_name';
-const PDF_ADDRESS_KEY         = 'pdf_address';
-const PDF_CONTACT_KEY         = 'pdf_contact';
-const PDF_RECORDED_BY_KEY     = 'pdf_recorded_by';
-const PDF_SIGNATORY_KEY       = 'pdf_signatory';
-const PDF_SIGNATORY_TITLE_KEY = 'pdf_signatory_title';
+const PLP_LOGO_KEY   = 'plp_logo';
+const DEPT_LOGOS_KEY = 'dept_logos';
+const NAME_KEY       = 'institution_name';
 
 function formatTime(val) {
   if (!val || val === '--------') return '';
@@ -33,22 +23,6 @@ function formatDate(val) {
     if (isNaN(d)) return val;
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   } catch { return val; }
-}
-
-// ── Name formatter: "Last Name, First Name(s)" ─────────────────────────────
-function formatNameLastFirst(record) {
-  // If the API returns separate fields, use them directly
-  if (record.employee_LastName && record.employee_firstName) {
-    return `${record.employee_LastName}, ${record.employee_firstName}`;
-  }
-  // Fallback: split fullName — assume last word is the surname
-  const parts = (record.fullName || '').trim().split(/\s+/);
-  if (parts.length >= 2) {
-    const last  = parts[parts.length - 1];
-    const first = parts.slice(0, parts.length - 1).join(' ');
-    return `${last}, ${first}`;
-  }
-  return record.fullName || '';
 }
 
 function loadScript(src) {
@@ -88,7 +62,11 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
 
   const [records, setRecords]           = useState([]);
   const [searchTerm, setSearchTerm]     = useState('');
-  const [selectedDept, setSelectedDept] = useState('All Departments');
+  const [activeFilterCat, setActiveFilterCat] = useState('all');
+  const [activeFilterVal, setActiveFilterVal] = useState('All');
+  const [dateDD, setDateDD] = useState('');
+  const [dateMM, setDateMM] = useState('');
+  const [dateYYYY, setDateYYYY] = useState('');
   const [exporting, setExporting]       = useState(false);
   const [showSetupModal, setShowSetupModal]     = useState(false);
   const [allEmployees, setAllEmployees]         = useState([]);
@@ -103,7 +81,6 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
   );
   const [scanMode, setScanMode] = useState(null);
   const [hasSetup, setHasSetup] = useState(false);
-  const [viewMode, setViewMode] = useState('table'); // 'table' | 'xml'
 
   // Load mode from localStorage on init
   useEffect(() => {
@@ -127,16 +104,6 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
     catch { return {}; }
   })();
 
-  // Dynamic PDF export settings from Settings → PDF Export tab
-  const pdfPasigLogo     = localStorage.getItem(PDF_PASIG_LOGO_KEY)      || '/Pasig_Logo.PNG';
-  const pdfWordmark      = localStorage.getItem(PDF_WORDMARK_KEY)         || '/Pasig_Wordmark.PNG';
-  const pdfOfficeName    = localStorage.getItem(PDF_OFFICE_NAME_KEY)      || 'Office of the Human Resource Development';
-  const pdfAddress       = localStorage.getItem(PDF_ADDRESS_KEY)          || 'Alkalde Jose St., Kapasigan, Pasig City, Philippines 1600';
-  const pdfContact       = localStorage.getItem(PDF_CONTACT_KEY)          || '638-1014 Loc. 106  |  hrd@plpasig.edu.ph';
-  const pdfRecordedBy    = localStorage.getItem(PDF_RECORDED_BY_KEY)      || 'Recorded by HRD Personnel\nAttendance checked/monitored by:';
-  const pdfSignatory     = localStorage.getItem(PDF_SIGNATORY_KEY)        || 'Signature Over Printed Name';
-  const pdfSignatoryTitle= localStorage.getItem(PDF_SIGNATORY_TITLE_KEY)  || 'Head of Office';
-
   const eventDate = eventData?.event_date || '';
   const eventType = eventData?.eventtype_name || '';
   const location  = eventData?.location_name || '';
@@ -158,6 +125,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
   // Safety cleanup for modal backdrop
   useEffect(() => {
   if (showSetupModal) return;
+  // Use a small delay so React finishes its own DOM cleanup first
   const timer = setTimeout(() => {
     document.body.classList.remove('modal-open');
     document.body.style.removeProperty('overflow');
@@ -194,6 +162,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
       const setupExists = Array.isArray(ids) && ids.length > 0;
       setHasSetup(setupExists);
 
+      // Sync scan mode from fresh API data only if no local override
       if (setupData?.scan_mode) {
         const localSaved = localStorage.getItem(`attendanceMode_${event_ID}`);
         if (!localSaved) {
@@ -201,6 +170,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
         }
       }
 
+      // Prefer explicit `status` when provided by the API; fallback to is_active
       if (setupData && (setupData?.status ?? null) !== null) {
         setEventStatus(setupData.status);
         setEventActive((setupData.status === 'Activated'));
@@ -216,20 +186,15 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
     }
   };
 
-  const handleDepartmentToggle = (deptId, checked) => {
-    const deptEmployees = allEmployees.filter(emp => Number(emp.department_ID) === Number(deptId));
-    const newSet = new Set(selectedEmployeeIds);
-    deptEmployees.forEach(emp => {
-      if (checked) newSet.add(emp.employee_ID);
-      else newSet.delete(emp.employee_ID);
-    });
-    setSelectedEmployeeIds(newSet);
-  };
-
-  const isDeptFullySelected = (deptId) => {
-    const deptEmployees = allEmployees.filter(emp => Number(emp.department_ID) === Number(deptId));
-    if (deptEmployees.length === 0) return false;
-    return deptEmployees.every(emp => selectedEmployeeIds.has(emp.employee_ID));
+  const handleDepartmentToggle = (departmentId, checked) => {
+    const next = new Set(selectedEmployeeIds);
+    allEmployees
+      .filter(emp => Number(emp.department_ID) === Number(departmentId))
+      .forEach(emp => {
+        if (checked) next.add(Number(emp.employee_ID));
+        else next.delete(Number(emp.employee_ID));
+      });
+    setSelectedEmployeeIds(next);
   };
 
   const handleEmployeeToggle = (employeeId, checked) => {
@@ -243,6 +208,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
     try {
       setSavingSetup(true);
       await setupEventEmployees(event_ID, Array.from(selectedEmployeeIds));
+      // Refresh setup info so `hasSetup` and button state update immediately
       await loadSetupData();
       setShowSetupModal(false);
       await loadAttendance();
@@ -258,6 +224,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
       alert('Please set up event first');
       return;
     }
+
     try {
       setUpdatingStatus(true);
       await activateEvent(event_ID);
@@ -300,15 +267,24 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
         scan_mode: newMode
       };
       await updateEvent(event_ID, updateData);
+      
+      // Mandatory LocalStorage Persistence
       localStorage.setItem(`attendanceMode_${event_ID}`, newMode);
       setScanMode(newMode);
+      
+      // Update the parent's (AdminDashboard) state too so it's persisted across tabs
       if (onUpdateData) {
         onUpdateData({ scan_mode: newMode });
       }
+      
+      // Show Success Feedback
       setStatusModalType('success');
       setStatusModalMsg(`Scanning mode successfully switched to ${newMode === 'check_in' ? 'Check-In' : 'Check-Out'}.`);
       setShowStatusModal(true);
+      
+      // Auto-hide modal after 2 seconds
       setTimeout(() => setShowStatusModal(false), 2000);
+      
     } catch (e) {
       setStatusModalType('error');
       setStatusModalMsg(e?.message || 'Failed to update scan mode.');
@@ -318,23 +294,42 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
     }
   };
 
-  const totalAttended = records.filter(r => r.attended).length;
-  const totalMissed   = records.filter(r => !r.attended).length;
-  const rate          = records.length
-    ? ((totalAttended / records.length) * 100).toFixed(1)
+  const filtered = records.filter(r => {
+    const q           = searchTerm.toLowerCase();
+    const matchSearch = r.fullName.toLowerCase().includes(q) || r.employee_code.toString().includes(q);
+    
+    let matchFilter = true;
+    if (activeFilterCat === 'dept') {
+      matchFilter = r.department_name === activeFilterVal;
+    } else if (activeFilterCat === 'checkIn') {
+      matchFilter = activeFilterVal === 'Present' ? !!r.checkIn : !r.checkIn;
+    } else if (activeFilterCat === 'checkOut') {
+      matchFilter = activeFilterVal === 'Done' ? !!r.checkOut : !r.checkOut;
+    } else if (activeFilterCat === 'date') {
+      const dt = r.time_in || r.time_out;
+      if (!dt) matchFilter = false;
+      else {
+        const [y, m, d] = dt.split(' ')[0].split('-');
+        const matchY = !dateYYYY || y === dateYYYY;
+        const matchM = !dateMM || m.padStart(2, '0') === dateMM.padStart(2, '0');
+        const matchD = !dateDD || d.padStart(2, '0') === dateDD.padStart(2, '0');
+        matchFilter = matchY && matchM && matchD;
+      }
+    }
+
+    return matchSearch && matchFilter;
+  });
+
+  const totalAttended = filtered.filter(r => r.attended).length;
+  const totalMissed   = filtered.filter(r => !r.attended).length;
+  const rate          = filtered.length
+    ? ((totalAttended / filtered.length) * 100).toFixed(1)
     : 0;
 
   const departments = [
     'All Departments',
-    ...new Set(records.map(r => r.department_name)),
+    ...new Set(records.map(r => r.department_name).filter(Boolean)),
   ];
-
-  const filtered = records.filter(r => {
-    const q           = searchTerm.toLowerCase();
-    const matchSearch = r.fullName.toLowerCase().includes(q) || r.employee_code.toString().includes(q);
-    const matchDept   = selectedDept === 'All Departments' || r.department_name === selectedDept;
-    return matchSearch && matchDept;
-  });
 
   const setupFilteredEmployees = allEmployees.filter(emp => {
     const q        = setupSearch.toLowerCase();
@@ -349,24 +344,23 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
     try {
       await ensurePdfLibs();
 
-      const isAllDepts  = selectedDept === 'All Departments';
-      const officeName  = isAllDepts ? 'ALL DEPARTMENTS' : selectedDept.toUpperCase();
-      const collegeLogo = isAllDepts ? '' : (deptLogos[selectedDept] || '');
+      const officeName = (activeFilterCat === 'dept') ? activeFilterVal.toUpperCase() : 'ALL DEPARTMENTS';
+      const collegeLogo = (activeFilterCat === 'dept') ? (deptLogos[activeFilterVal] || '') : '';
       const exportRows  = filtered;
       const dateStr     = formatDate(eventDate);
 
+      // Pre-load logos as base64
       const [pasigLogoB64, pasigWordmarkB64, plpLogoB64, collegeLogoB64] = await Promise.all([
-        pdfPasigLogo ? (pdfPasigLogo.startsWith('data:') ? Promise.resolve(pdfPasigLogo) : loadImageAsBase64(pdfPasigLogo)) : Promise.resolve(''),
-        pdfWordmark  ? (pdfWordmark.startsWith('data:')  ? Promise.resolve(pdfWordmark)  : loadImageAsBase64(pdfWordmark))  : Promise.resolve(''),
+        loadImageAsBase64('/Pasig_Logo.PNG'),
+        loadImageAsBase64('/Pasig_Wordmark.PNG'),
         plpLogo ? loadImageAsBase64(plpLogo) : Promise.resolve(''),
         collegeLogo ? loadImageAsBase64(collegeLogo) : Promise.resolve(''),
       ]);
 
-      // Use "Last Name, First Name" in the PDF
       const rowsHtml = exportRows.map((r, i) => `
         <tr>
           <td class="cc">${i + 1}</td>
-          <td>${formatNameLastFirst(r)}</td>
+          <td>${r.fullName || ''}</td>
           <td class="cc">${r.attended ? '&#10003;' : ''}</td>
           <td class="cc">${!r.attended ? 'A' : ''}</td>
         </tr>
@@ -405,6 +399,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
             margin-bottom: 14px;
           }
 
+          /* LEFT: logos row */
           .logo-left {
             display: flex;
             align-items: center;
@@ -438,6 +433,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
             border-radius: 4px;
           }
 
+          /* RIGHT: school info */
           .header-right {
             text-align: right;
             line-height: 1.6;
@@ -471,6 +467,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
             margin-top: 2px;
           }
 
+          /* TITLE BLOCK */
           .title-block {
             text-align: center;
             padding: 8px 0 6px;
@@ -518,6 +515,8 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
 
         <!-- HEADER -->
         <div class="header">
+
+          <!-- LEFT: Pasig Logo → Pasig Wordmark → divider → School Logo → Dept Logo -->
           <div class="logo-left">
             ${pasigLogoB64
               ? `<img src="${pasigLogoB64}" alt="Pasig Logo" />`
@@ -533,19 +532,21 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
               ? `<img src="${plpLogoB64}" alt="School Logo" />`
               : `<div class="logo-placeholder">School<br>Logo</div>`}
 
-            ${!isAllDepts
+            ${(activeFilterCat === 'dept')
               ? collegeLogoB64
                 ? `<img src="${collegeLogoB64}" alt="Department Logo" />`
                 : `<div class="logo-placeholder">Dept<br>Logo</div>`
               : ''}
           </div>
 
+          <!-- RIGHT: school name ribbon + info -->
           <div class="header-right">
             <div class="header-institution">${institutionName}</div>
-            <div class="header-sub">${pdfOfficeName}</div>
-            <div class="header-address">${pdfAddress}</div>
-            <div class="header-contact">${pdfContact}</div>
+            <div class="header-sub">Office of the Human Resource Development</div>
+            <div class="header-address">Alkalde Jose St., Kapasigan, Pasig City, Philippines 1600</div>
+            <div class="header-contact">&#9990; 638-1014 Loc. 106 &nbsp;&nbsp;|&nbsp;&nbsp; &#9993; hrd@plpasig.edu.ph</div>
           </div>
+
         </div>
 
         <!-- TITLE BLOCK -->
@@ -562,10 +563,14 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
         <div class="info-rows">
           <div><strong>NAME OF OFFICE:</strong> ${officeName}</div>
           ${location ? `<div><strong>VENUE:</strong> ${location}</div>` : ''}
+          <div style="margin-top: 5px; font-size: 9pt; color: #555;">
+            <strong>Filter applied:</strong> 
+            ${activeFilterCat === 'all' ? 'None (All Records)' : `${activeFilterCat.toUpperCase()}: ${activeFilterVal}${activeFilterCat === 'date' ? `${dateDD}-${dateMM}-${dateYYYY}` : ''}`}
+          </div>
         </div>
 
         <div class="instruction">
-          <strong>&#10003;</strong> means present; if absent <strong>A</strong>.
+          <strong>&#10003;</strong> means present; if absent <strong>A</strong> and if late <strong>L</strong>.
         </div>
 
         <table>
@@ -577,7 +582,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
               <th>No.</th>
               <th>Name of Employee</th>
               <th>PRESENT</th>
-              <th>ABSENT</th>
+              <th>ABSENT / LATE</th>
             </tr>
           </thead>
           <tbody>
@@ -589,17 +594,18 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
         <div class="stats-box">
           <span>Total Employees: <strong>${exportRows.length}</strong></span>
           <span>Attended: <strong>${attended}</strong></span>
-          <span>Absent: <strong>${absent}</strong></span>
+          <span>Absent / Late: <strong>${absent}</strong></span>
           <span>Attendance Rate: <strong>${attendRate}%</strong></span>
         </div>
 
         <div class="footer-section">
           <div class="footer-note">
-            ${pdfRecordedBy.replace(/\n/g, '<br/>')}
+            Recorded by HRD Personnel<br/>
+            Attendance checked/monitored by:
           </div>
           <div class="signature-line">
-            ${pdfSignatory}<br/>
-            <span class="signature-sub">${pdfSignatoryTitle}</span>
+            Signature Over Printed Name<br/>
+            <span class="signature-sub">Head of Office</span>
           </div>
         </div>
       `;
@@ -615,6 +621,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
         windowWidth:     794,
       });
 
+      // Safe removal — check it's still in the DOM
       if (container.parentNode === document.body) {
         document.body.removeChild(container);
       }
@@ -643,56 +650,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
     }
   };
 
-  const generateAttendanceXML = () => {
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    xml += `<event_attendance>\n`;
-    xml += `  <event_id>${event_ID}</event_id>\n`;
-    xml += `  <event_name>${eventName}</event_name>\n`;
-    xml += `  <event_date>${eventDate}</event_date>\n`;
-    xml += `  <total_records>${filtered.length}</total_records>\n`;
-    xml += `  <records>\n`;
-
-    filtered.forEach((r, index) => {
-      xml += `    <record>\n`;
-      xml += `      <no>${index + 1}</no>\n`;
-      xml += `      <employee_code>${r.employee_code}</employee_code>\n`;
-      xml += `      <full_name>${formatNameLastFirst(r)}</full_name>\n`;
-      xml += `      <department>${r.department_name}</department>\n`;
-      xml += `      <check_in>${r.checkIn || ''}</check_in>\n`;
-      xml += `      <check_out>${r.checkOut || ''}</check_out>\n`;
-      xml += `      <attended>${r.attended ? 'Yes' : 'No'}</attended>\n`;
-      xml += `      <status>${r.status || ''}</status>\n`;
-      xml += `    </record>\n`;
-    });
-
-    xml += `  </records>\n`;
-    xml += `</event_attendance>`;
-    return xml;
-  };
-
-  const copyXMLToClipboard = async () => {
-    const xmlContent = generateAttendanceXML();
-    try {
-      await navigator.clipboard.writeText(xmlContent);
-      alert('XML copied to clipboard!');
-    } catch (err) {
-      alert('Failed to copy XML.');
-    }
-  };
-
-  const downloadXML = () => {
-    const xmlContent = generateAttendanceXML();
-    const blob = new Blob([xmlContent], { type: 'application/xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Attendance_${eventName.replace(/\s+/g, '_')}_${eventDate || 'date'}.xml`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="admin-page">
@@ -762,118 +720,141 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
               >
                 Check Out
               </Button>
-              <Button
-                variant={viewMode === 'table' ? 'primary' : 'outline-primary'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-              >
-                Table View
-              </Button>
-              <Button
-                variant={viewMode === 'xml' ? 'primary' : 'outline-primary'}
-                size="sm"
-                onClick={() => setViewMode('xml')}
-              >
-                XML View
-              </Button>
-              {viewMode === 'xml' && (
-                <>
-                  <Button variant={viewMode === 'xml' ? 'primary' : 'outline-primary'} onClick={copyXMLToClipboard}>
-                    Copy XML
-                  </Button>
-                  <Button variant={viewMode === 'xml' ? 'primary' : 'outline-primary'} onClick={downloadXML}>
-                    Download XML
-                  </Button>
-                </>
-              )}
               <div className="ms-3">
                 <Button onClick={handleExportLog} disabled={exporting || !hasSetup} className="btn-export-pdf">
-                  {exporting ? 'Exporting…' : 'Export PDF'}
+                  {exporting ? 'Exporting…' : 'Generate Report PDF'}
                 </Button>
               </div>
             </div>
           </div>
 
-          <Row className="g-2 mb-3">
-            <Col md={6}>
-              <input
+          <Row className="mb-3 g-2">
+            <Col md={4}>
+              <Form.Control
                 type="text"
-                className="search-input"
-                placeholder="Search by name or ID..."
+                placeholder="Search name or ID..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />
             </Col>
-            <Col md={6}>
-              <select
-                className="filter-select"
-                value={selectedDept}
-                onChange={e => setSelectedDept(e.target.value)}
+            <Col md={4}>
+              <Form.Select 
+                value={activeFilterCat} 
+                onChange={e => {
+                  setActiveFilterCat(e.target.value);
+                  setActiveFilterVal('All');
+                }}
               >
-                {departments.map((dept, index) => (
-                  <option key={index}>{dept}</option>
-                ))}
-              </select>
+                <option value="all">All Records</option>
+                <option value="dept">Filter by Department</option>
+                <option value="checkIn">Filter by Check-In Status</option>
+                <option value="checkOut">Filter by Check-Out Status</option>
+                <option value="date">Filter by Date</option>
+              </Form.Select>
+            </Col>
+            <Col md={4}>
+              {activeFilterCat === 'dept' && (
+                <Form.Select value={activeFilterVal} onChange={e => setActiveFilterVal(e.target.value)}>
+                  <option value="All">Select Department...</option>
+                  {departments.filter(d => d !== 'All Departments').map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </Form.Select>
+              )}
+              {activeFilterCat === 'checkIn' && (
+                <Form.Select value={activeFilterVal} onChange={e => setActiveFilterVal(e.target.value)}>
+                  <option value="All">Select Status...</option>
+                  <option value="Present">Present</option>
+                  <option value="Absent">Absent</option>
+                </Form.Select>
+              )}
+              {activeFilterCat === 'checkOut' && (
+                <Form.Select value={activeFilterVal} onChange={e => setActiveFilterVal(e.target.value)}>
+                  <option value="All">Select Status...</option>
+                  <option value="Done">Checked Out</option>
+                  <option value="Pending">Pending</option>
+                </Form.Select>
+              )}
+              {activeFilterCat === 'date' && (
+                <div className="d-flex gap-1">
+                  <Form.Control placeholder="DD" value={dateDD} onChange={e => setDateDD(e.target.value.slice(0,2))} style={{ width: '60px' }} />
+                  <Form.Control placeholder="MM" value={dateMM} onChange={e => setDateMM(e.target.value.slice(0,2))} style={{ width: '60px' }} />
+                  <Form.Control placeholder="YYYY" value={dateYYYY} onChange={e => setDateYYYY(e.target.value.slice(0,4))} style={{ width: '85px' }} />
+                </div>
+              )}
+              {activeFilterCat === 'all' && (
+                <Form.Control disabled placeholder="No sub-filter" />
+              )}
             </Col>
           </Row>
-
-          {viewMode === 'table' ? (        
-          <div className="table-responsive">
-            <table className="attendance-table">
-              <thead>
-                <tr>
-                  <th>Employee Code</th>
-                  <th>Name</th>
-                  <th>Department</th>
-                  <th>Check-In</th>
-                  <th>Check-Out</th>
-                  <th>Attended</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length > 0 ? (
-                  filtered.map((r, index) => (
-                    <tr key={index}>
-                      <td>{r.employee_code}</td>
-                      <td>{formatNameLastFirst(r)}</td>
-                      <td>{r.department_name}</td>
-                      <td>{r.checkIn || '--------'}</td>
-                      <td>{r.checkOut || '--------'}</td>
-                      <td>
-                        {r.attended
-                          ? <span className="pill-attended">Attended</span>
-                          : <span className="pill-absent">Not Attended</span>}
-                      </td>
-                      <td>{r.status || '--------'}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" style={{ textAlign: 'center' }}>No records found</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          ) : (
-            <div className="xml-view mt-3">
-              <pre style={{
-                background: '#1e1e1e',
-                color: '#d4d4d4',
-                padding: '20px',
-                borderRadius: '8px',
-                overflow: 'auto',
-                maxHeight: '65vh',
-                fontSize: '13.5px',
-                lineHeight: '1.5',
-                whiteSpace: 'pre-wrap',
-                fontFamily: 'Consolas, Monaco, monospace'
-              }}>
-                {generateAttendanceXML()}
-              </pre>
+          <div className="xml-view mt-3" style={{
+            background: '#f8fdf9',
+            border: '1px solid #d4e8da',
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }}>
+            <div style={{ background: '#1a5f2e', color: 'white', padding: '14px 20px', fontSize: '13px', fontWeight: '700' }}>
+              XML Report — {eventName} &nbsp;|&nbsp; {eventDate} &nbsp;|&nbsp; {filtered.length} records
             </div>
-          )}
+            <div style={{ display: 'flex', borderBottom: '1px solid #d4e8da', background: '#f0f7f2', textAlign: 'center' }}>
+              <div style={{ flex: 1, padding: '12px', borderRight: '1px solid #d4e8da' }}>
+                <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase' }}>Total</div>
+                <div style={{ fontSize: '22px', fontWeight: '800', color: '#1a5f2e' }}>{filtered.length}</div>
+              </div>
+              <div style={{ flex: 1, padding: '12px', borderRight: '1px solid #d4e8da' }}>
+                <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase' }}>Attended</div>
+                <div style={{ fontSize: '22px', fontWeight: '800', color: '#1a5f2e' }}>{filtered.filter(r => r.attended).length}</div>
+              </div>
+              <div style={{ flex: 1, padding: '12px' }}>
+                <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase' }}>Not Attended</div>
+                <div style={{ fontSize: '22px', fontWeight: '800', color: '#c0392b' }}>{filtered.filter(r => !r.attended).length}</div>
+              </div>
+            </div>
+            <div style={{ overflowX: 'auto', maxHeight: '55vh', overflowY: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                <thead>
+                  <tr style={{ background: '#1a5f2e', color: 'white', position: 'sticky', top: 0 }}>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>#</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>Employee Code</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>Name</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>Department</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>Check-In</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>Check-Out</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>Attended</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.length > 0 ? (
+                    filtered.map((r, index) => (
+                      <tr key={index} style={{ background: index % 2 === 0 ? 'white' : '#f9fafb' }}>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8', color: '#aaa', fontSize: '11px' }}>{index + 1}</td>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8' }}>{r.employee_code}</td>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8', fontWeight: '600' }}>{r.fullName}</td>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8' }}>{r.department_name}</td>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8', fontSize: '11px' }}>{r.checkIn || <span style={{ color: '#bbb' }}>--------</span>}</td>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8', fontSize: '11px' }}>{r.checkOut || <span style={{ color: '#bbb' }}>--------</span>}</td>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8' }}>
+                          {r.attended
+                            ? <span style={{ background: '#e9f5ec', color: '#1a5f2e', border: '1px solid #c3e6cb', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: '700' }}>✓ Attended</span>
+                            : <span style={{ background: '#fdecea', color: '#c0392b', border: '1px solid #f5c6cb', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: '700' }}>✗ Absent</span>}
+                        </td>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8' }}>
+                          {r.status
+                            ? <span style={{ background: '#e3f2fd', color: '#0d47a1', border: '1px solid #bbdefb', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: '700' }}>{r.status}</span>
+                            : <span style={{ color: '#bbb' }}>--------</span>}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#888' }}>No records found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <div className="table-footer">
             Showing {filtered.length} of {records.length} employees
@@ -929,18 +910,22 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
           {allEmployees.every(e => selectedEmployeeIds.has(Number(e.employee_ID))) ? 'Deselect all' : 'Select all'}
         </span>
       </div>
-      <div className="dept-chips-container mb-4">
-        {allDepartments.map(dept => {
-          const allSelected = isDeptFullySelected(dept.id);
+      <div className="dept-chips-wrap">
+        {allDepartments.map((dept) => {
+          const deptEmployees = allEmployees.filter(
+            emp => Number(emp.department_ID) === Number(dept.department_ID)
+          );
+          const allSelected = deptEmployees.length > 0 &&
+            deptEmployees.every(emp => selectedEmployeeIds.has(Number(emp.employee_ID)));
           return (
-            <label key={dept.id} className={`dept-chip ${allSelected ? 'dept-chip--selected' : ''}`}>
-              <input 
-                type="checkbox" 
+            <label key={dept.department_ID} className={`dept-chip ${allSelected ? 'dept-chip--selected' : ''}`}>
+              <input
+                type="checkbox"
                 checked={allSelected}
-                onChange={(e) => handleDepartmentToggle(dept.id, e.target.checked)}
-                style={{ display: 'none' }}
+                onChange={(e) => handleDepartmentToggle(dept.department_ID, e.target.checked)}
+                style={{ accentColor: '#28a745', width: 12, height: 12 }}
               />
-              {dept.dept_name}
+              {dept.department_name}
             </label>
           );
         })}
@@ -967,7 +952,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
                 style={{ accentColor: '#28a745', width: 14, height: 14, flexShrink: 0 }}
               />
               <div className="employee-row-info">
-                <p className="employee-row-name">{emp.employee_LastName}, {emp.employee_firstName}</p>
+                <p className="employee-row-name">{emp.employee_firstName} {emp.employee_LastName}</p>
                 <p className="employee-row-sub">{emp.employee_code} · {emp.department_name}</p>
               </div>
               <span className="employee-dept-badge">{emp.department_name}</span>

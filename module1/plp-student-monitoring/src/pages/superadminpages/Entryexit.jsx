@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Form, Button, Table, Modal } from 'react-bootstrap';
-import { getEntryExitLogs, getAttendance, getEmployees, getEvents } from '../api';
-import './ccs/entryexit.css';
+import { getEntryExitLogs, getAttendance, getEmployees, getEvents } 
+from '../../../../backend/src/api';
+import '../../css/Entryexit.css';
 
 function EntryExitPage() {
 
