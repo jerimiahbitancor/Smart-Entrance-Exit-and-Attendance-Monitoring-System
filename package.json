@@ -16,6 +16,9 @@
     "python-setup": "cd module1/python && pip install fastapi uvicorn opencv-python numpy mediapipe"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "and": "^0.0.3",
+    "concurrently": "^8.2.2",
+    "install": "^0.13.0",
+    "npm": "^11.14.1"
   }
 }
