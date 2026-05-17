@@ -51,8 +51,11 @@ function App() {
   }, []);
 
   const handleBackToHome = () => {
+    // Clear session on logout
     localStorage.removeItem('eams_session');
-    setCurrentPage('landing');
+    
+    // Redirect to Module 1 LOGIN page (not scanner)
+    window.location.href = 'http://localhost:5173/login';
   };
 
   const handleSecretAdmin = () => {
