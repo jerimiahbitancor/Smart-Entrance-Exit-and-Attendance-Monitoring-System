@@ -55,7 +55,7 @@ const LandingPage = () => {
               </div>
             </Link>
 
-            <Link to="/attendance" className="landing-card-link">
+            <a href="http://localhost:3000" className="landing-card-link">
               <div className="landing-card">
                 <div className="landing-card-icon">
                   <LuLogs size={28} />
@@ -63,10 +63,10 @@ const LandingPage = () => {
                 <div className="landing-card-body">
                   <div className="landing-card-label">Attendance Monitoring</div>
                   <div className="landing-card-divider"></div>
-                  <div className="landing-card-desc">Track & Record Employee attendance in real time.</div>
+                  <div className="landing-card-desc">Track and Record Employee attendance in real time.</div>
                 </div>
               </div>
-            </Link>
+            </a>
 
             <Link to="/login" className="landing-card-link">
               <div className="landing-card">

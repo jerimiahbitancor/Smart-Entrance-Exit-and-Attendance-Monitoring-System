@@ -1,8 +1,10 @@
+// module2/attendance_application/src/SCAN/LandingPage.js
 import React, { useState, useRef, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Button, Badge, Form } from 'react-bootstrap';
 import './LandingPage.css';
 import { getEvents, getEmployees, getEmployeePhotos, markAttendance, getEventSetup } from '../api';
+import { FiArrowLeft } from 'react-icons/fi';
 import LoginPage from './Adminlogin';
 import * as faceapi from 'face-api.js';
 import { Html5QrcodeScanner, Html5Qrcode } from "html5-qrcode";
@@ -770,6 +772,41 @@ function EmployeePage({ onBack, onNavigateAdmin }) {
           className="logo"
         />
       </div>
+
+      {/* Back Button to Landing Page */}
+      <button 
+        onClick={() => window.location.href = 'http://localhost:5173'}
+        className="back-button-attendance"
+        title="Back to Landing Page"
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          zIndex: 1000,
+          backgroundColor: '#ffffff',
+          border: 'none',
+          borderRadius: '50%',
+          width: '50px',
+          height: '50px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+          transition: 'all 0.3s ease',
+          color: '#0d3a22'
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.backgroundColor = '#f0f0f0';
+          e.target.style.transform = 'scale(1.1)';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.backgroundColor = '#ffffff';
+          e.target.style.transform = 'scale(1)';
+        }}
+      >
+        <FiArrowLeft size={24} />
+      </button>
 
       <Container fluid className="main-content px-3" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <Row className="justify-content-center" style={{ flex: 1, minHeight: 0 }}>
