@@ -7,7 +7,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
-  "http://localhost/Smart Attendance System/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module2/facial_attendance_api/controllers";
+  "http://localhost/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module2/facial_attendance_api/controllers";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
