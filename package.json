@@ -3,22 +3,32 @@
   "version": "1.0.0",
   "description": "Integrated Smart Entrance, Exit, and Attendance Monitoring System with Data Analytics",
   "scripts": {
-    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run face-service\" \"npm run attendance-api\" \"npm run attendance-client\"",
+    "dev": "concurrently --kill-others --names \"SERVER,ELECTRON,FACE,API,ATTENDANCE\" --prefix-colors \"blue,green,yellow,red,magenta\" \"npm run server\" \"npm run client-electron\" \"npm run face-service\" \"npm run attendance-api\" \"npm run attendance-client\"",
+    "dev-web": "concurrently --kill-others --names \"SERVER,WEB,FACE,API,ATTENDANCE\" --prefix-colors \"blue,cyan,yellow,red,magenta\" \"npm run server\" \"npm run client-web\" \"npm run face-service\" \"npm run attendance-api\" \"npm run attendance-client\"",
     "server": "cd module1/backend && npm run dev",
-    "client": "cd module1/plp-student-monitoring && npm run dev",
+    "client-web": "cd module1/plp-student-monitoring && npm run dev",
+    "client-electron": "cd module1/plp-student-monitoring && npm run electron-dev",
     "face-service": "cd module1/python && python face_service.py",
-    "attendance-api": "cd module2/facial_attendance_api && D:\\xampp\\php\\php -S localhost:8000",
+    "attendance-api": "cd module2/facial_attendance_api && php -S localhost:8000",
     "attendance-client": "cd module2/attendance_application && npm start",
+    "build-electron": "cd module1/plp-student-monitoring && npm run build-electron",
+    "package-electron": "cd module1/plp-student-monitoring && npm run package",
+    "package-electron-win": "cd module1/plp-student-monitoring && npm run package:win",
+    "package-electron-mac": "cd module1/plp-student-monitoring && npm run package:mac",
+    "package-electron-linux": "cd module1/plp-student-monitoring && npm run package:linux",
     "install-all": "npm run install-backend && npm run install-client && npm run install-attendance",
     "install-backend": "cd module1/backend && npm install",
     "install-client": "cd module1/plp-student-monitoring && npm install",
     "install-attendance": "cd module2/attendance_application && npm install",
-    "python-setup": "cd module1/python && pip install fastapi uvicorn opencv-python numpy mediapipe"
+    "python-setup": "cd module1/python && pip install fastapi uvicorn opencv-python numpy mediapipe",
+    "kill-ports": "npx kill-port 3000 5000 5173 8000",
+    "status": "echo '=== System Status ===' && echo 'Backend: http://localhost:3000' && echo 'Electron/Web: http://localhost:5173' && echo 'Face Service: http://localhost:5000' && echo 'Attendance API: http://localhost:8000'"
   },
   "devDependencies": {
     "and": "^0.0.3",
     "concurrently": "^8.2.2",
     "install": "^0.13.0",
-    "npm": "^11.14.1"
+    "npm": "^11.14.1",
+    "kill-port": "^2.0.1"
   }
 }
