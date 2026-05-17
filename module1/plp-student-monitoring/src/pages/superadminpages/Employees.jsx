@@ -628,7 +628,7 @@ const closeCamera = () => {
       setFeedback({ type: 'danger', message: 'Employee code, first name and last name are required.' });
       return;
     }
-    if (!formData.department_ID) { setFeedback({ type: 'danger', message: 'Please select a department.' }); return; }
+    if (!formData.id) { setFeedback({ type: 'danger', message: 'Please select a department.' }); return; }
     if (!formData.position_ID)   { setFeedback({ type: 'danger', message: 'Please select a position.'   }); return; }
 
     // Ensure email is sent as raw string, null if empty
@@ -804,7 +804,7 @@ const closeCamera = () => {
               <Form.Select value={selectedDepartment} onChange={e => setSelectedDepartment(e.target.value)}>
                 <option>All Departments</option>
                 {departments.map(d => (
-                  <option key={d.department_ID} value={d.department_name}>{d.department_name}</option>
+                  <option key={d.id} value={d.dept_name}>{d.dept_name}</option>
                 ))}
               </Form.Select>
             </Col>
@@ -911,7 +911,7 @@ const closeCamera = () => {
                   <Form.Select name="department_ID" value={formData.department_ID} onChange={handleChange} required>
                     <option value="">Select Department</option>
                     {departments.map(d => (
-                      <option key={d.department_ID} value={d.department_ID}>{d.department_name}</option>
+                      <option key={d.id} value={d.id}>{d.dept_name}</option>
                     ))}
                   </Form.Select>
                 </Form.Group>
