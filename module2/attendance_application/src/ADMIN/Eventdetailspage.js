@@ -216,15 +216,20 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
     }
   };
 
-  const handleDepartmentToggle = (departmentId, checked) => {
-    const next = new Set(selectedEmployeeIds);
-    allEmployees
-      .filter(emp => Number(emp.department_ID) === Number(departmentId))
-      .forEach(emp => {
-        if (checked) next.add(Number(emp.employee_ID));
-        else next.delete(Number(emp.employee_ID));
-      });
-    setSelectedEmployeeIds(next);
+  const handleDepartmentToggle = (deptId, checked) => {
+    const deptEmployees = allEmployees.filter(emp => Number(emp.department_ID) === Number(deptId));
+    const newSet = new Set(selectedEmployeeIds);
+    deptEmployees.forEach(emp => {
+      if (checked) newSet.add(emp.employee_ID);
+      else newSet.delete(emp.employee_ID);
+    });
+    setSelectedEmployeeIds(newSet);
+  };
+
+  const isDeptFullySelected = (deptId) => {
+    const deptEmployees = allEmployees.filter(emp => Number(emp.department_ID) === Number(deptId));
+    if (deptEmployees.length === 0) return false;
+    return deptEmployees.every(emp => selectedEmployeeIds.has(emp.employee_ID));
   };
 
   const handleEmployeeToggle = (employeeId, checked) => {
@@ -924,22 +929,18 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
           {allEmployees.every(e => selectedEmployeeIds.has(Number(e.employee_ID))) ? 'Deselect all' : 'Select all'}
         </span>
       </div>
-      <div className="dept-chips-wrap">
-        {allDepartments.map((dept) => {
-          const deptEmployees = allEmployees.filter(
-            emp => Number(emp.department_ID) === Number(dept.department_ID)
-          );
-          const allSelected = deptEmployees.length > 0 &&
-            deptEmployees.every(emp => selectedEmployeeIds.has(Number(emp.employee_ID)));
+      <div className="dept-chips-container mb-4">
+        {allDepartments.map(dept => {
+          const allSelected = isDeptFullySelected(dept.id);
           return (
-            <label key={dept.department_ID} className={`dept-chip ${allSelected ? 'dept-chip--selected' : ''}`}>
-              <input
-                type="checkbox"
+            <label key={dept.id} className={`dept-chip ${allSelected ? 'dept-chip--selected' : ''}`}>
+              <input 
+                type="checkbox" 
                 checked={allSelected}
-                onChange={(e) => handleDepartmentToggle(dept.department_ID, e.target.checked)}
-                style={{ accentColor: '#28a745', width: 12, height: 12 }}
+                onChange={(e) => handleDepartmentToggle(dept.id, e.target.checked)}
+                style={{ display: 'none' }}
               />
-              {dept.department_name}
+              {dept.dept_name}
             </label>
           );
         })}

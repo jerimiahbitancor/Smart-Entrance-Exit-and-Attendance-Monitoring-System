@@ -588,46 +588,110 @@ export default function Settingspage({ onBrandingChange }) {
 
   const handleAdd = async (type) => {
     const label = typeLabels[type];
-    const name = await openModal({
-      type: 'input', variant: 'primary', icon: 'bi-plus-circle',
-      title: `Add ${label}`,
-      message: `Enter the name for the new ${label.toLowerCase()}.`,
-      placeholder: `${label} name...`,
-      confirmLabel: 'Next', confirmIcon: 'bi-arrow-right',
-    });
-    if (!name?.trim()) return;
+    
+    // For departments, we need both name and code
+    let name = '';
+    let code = '';
+    
+    if (type === 'departments') {
+      const deptCode = await openModal({
+        type: 'input', variant: 'primary', icon: 'bi-hash',
+        title: `Add ${label} Code`,
+        message: `Enter the code for the new ${label.toLowerCase()} (e.g. CCS, COE).`,
+        placeholder: `${label} code...`,
+        confirmLabel: 'Next', confirmIcon: 'bi-arrow-right',
+      });
+      if (!deptCode?.trim()) return;
+      code = deptCode.trim();
+
+      const deptName = await openModal({
+        type: 'input', variant: 'primary', icon: 'bi-building',
+        title: `Add ${label} Name`,
+        message: `Enter the full name for the new ${label.toLowerCase()}.`,
+        placeholder: `${label} name...`,
+        confirmLabel: 'Next', confirmIcon: 'bi-arrow-right',
+      });
+      if (!deptName?.trim()) return;
+      name = deptName.trim();
+    } else {
+      const inputName = await openModal({
+        type: 'input', variant: 'primary', icon: 'bi-plus-circle',
+        title: `Add ${label}`,
+        message: `Enter the name for the new ${label.toLowerCase()}.`,
+        placeholder: `${label} name...`,
+        confirmLabel: 'Next', confirmIcon: 'bi-arrow-right',
+      });
+      if (!inputName?.trim()) return;
+      name = inputName.trim();
+    }
+
     const confirmed = await openModal({
       type: 'confirm', variant: 'primary', icon: 'bi-plus-circle',
       title: `Confirm Add ${label}`,
-      message: `Are you sure you want to add "${name.trim()}" as a new ${label.toLowerCase()}?`,
+      message: `Are you sure you want to add "${name}" ${code ? `(${code})` : ''} as a new ${label.toLowerCase()}?`,
       confirmLabel: 'Add', confirmIcon: 'bi-plus-lg',
     });
     if (!confirmed) return;
-    if (type === 'departments') { await addDepartment({ department_name: name.trim() }); await refreshDepartments(); }
-    if (type === 'positions')   { await addPosition(  { position_name:   name.trim() }); await refreshPositions(); }
-    if (type === 'locations')   { await addLocation(  { location_name:   name.trim() }); await refreshLocations(); }
+
+    if (type === 'departments') { 
+      await addDepartment({ dept_name: name, dept_code: code }); 
+      await refreshDepartments(); 
+    }
+    if (type === 'positions')   { await addPosition(  { position_name:   name }); await refreshPositions(); }
+    if (type === 'locations')   { await addLocation(  { location_name:   name }); await refreshLocations(); }
   };
 
   const handleEdit = async (type, item) => {
     const label     = typeLabels[type];
-    const nameField = type === 'departments' ? 'department_name' : type === 'positions' ? 'position_name' : 'location_name';
-    const newName = await openModal({
-      type: 'input', variant: 'primary', icon: 'bi-pencil',
-      title: `Edit ${label}`,
-      message: `Update the name for this ${label.toLowerCase()}.`,
-      defaultValue: item[nameField],
-      placeholder: `${label} name...`,
-      confirmLabel: 'Save', confirmIcon: 'bi-check-lg',
-    });
-    if (!newName?.trim() || newName.trim() === item[nameField]) return;
-    if (type === 'departments') { await updateDepartment(item.department_ID, { department_name: newName.trim() }); await refreshDepartments(); }
-    if (type === 'positions')   { await updatePosition(  item.position_ID,   { position_name:   newName.trim() }); await refreshPositions(); }
-    if (type === 'locations')   { await updateLocation(  item.location_ID,   { location_name:   newName.trim() }); await refreshLocations(); }
+    const nameField = type === 'departments' ? 'dept_name' : type === 'positions' ? 'position_name' : 'location_name';
+    
+    if (type === 'departments') {
+      const newCode = await openModal({
+        type: 'input', variant: 'primary', icon: 'bi-hash',
+        title: `Edit ${label} Code`,
+        message: `Update the code for this ${label.toLowerCase()}.`,
+        defaultValue: item.dept_code,
+        placeholder: `${label} code...`,
+        confirmLabel: 'Next', confirmIcon: 'bi-arrow-right',
+      });
+      if (newCode === null) return;
+
+      const newName = await openModal({
+        type: 'input', variant: 'primary', icon: 'bi-pencil',
+        title: `Edit ${label} Name`,
+        message: `Update the name for this ${label.toLowerCase()}.`,
+        defaultValue: item.dept_name,
+        placeholder: `${label} name...`,
+        confirmLabel: 'Save', confirmIcon: 'bi-check-lg',
+      });
+      if (newName === null) return;
+
+      if (newCode.trim() === item.dept_code && newName.trim() === item.dept_name) return;
+      
+      await updateDepartment(item.id, { 
+        dept_name: newName.trim(), 
+        dept_code: newCode.trim() 
+      }); 
+      await refreshDepartments();
+    } else {
+      const newName = await openModal({
+        type: 'input', variant: 'primary', icon: 'bi-pencil',
+        title: `Edit ${label}`,
+        message: `Update the name for this ${label.toLowerCase()}.`,
+        defaultValue: item[nameField],
+        placeholder: `${label} name...`,
+        confirmLabel: 'Save', confirmIcon: 'bi-check-lg',
+      });
+      if (!newName?.trim() || newName.trim() === item[nameField]) return;
+      
+      if (type === 'positions')   { await updatePosition(  item.position_ID,   { position_name:   newName.trim() }); await refreshPositions(); }
+      if (type === 'locations')   { await updateLocation(  item.location_ID,   { location_name:   newName.trim() }); await refreshLocations(); }
+    }
   };
 
   const handleRemove = async (type, item) => {
     const label     = typeLabels[type];
-    const nameField = type === 'departments' ? 'department_name' : type === 'positions' ? 'position_name' : 'location_name';
+    const nameField = type === 'departments' ? 'dept_name' : type === 'positions' ? 'position_name' : 'location_name';
     const confirmed = await openModal({
       type: 'confirm', variant: 'danger', icon: 'bi-trash',
       title: `Remove ${label}`,
@@ -635,13 +699,19 @@ export default function Settingspage({ onBrandingChange }) {
       confirmLabel: 'Remove', confirmIcon: 'bi-trash',
     });
     if (!confirmed) return;
-    if (type === 'departments') { await deleteDepartment(item.department_ID); await refreshDepartments(); }
+    if (type === 'departments') { await deleteDepartment(item.id); await refreshDepartments(); }
     if (type === 'positions')   { await deletePosition(  item.position_ID);   await refreshPositions(); }
     if (type === 'locations')   { await deleteLocation(  item.location_ID);   await refreshLocations(); }
   };
 
   const renderList = (type, items, search, setSearch, nameField, iconClass) => {
-    const filtered = items.filter(i => i[nameField]?.toLowerCase().includes(search.toLowerCase()));
+    const filtered = items.filter(i => {
+      const searchLower = search.toLowerCase();
+      if (type === 'departments') {
+        return i.dept_name?.toLowerCase().includes(searchLower) || i.dept_code?.toLowerCase().includes(searchLower);
+      }
+      return i[nameField]?.toLowerCase().includes(searchLower);
+    });
     return (
       <>
         <div className="list-toolbar">
@@ -670,7 +740,12 @@ export default function Settingspage({ onBrandingChange }) {
             <div className="list-item" key={i}>
               <div className="list-item-name">
                 <div className="list-item-icon"><i className={`bi ${iconClass}`}></i></div>
-                {item[nameField]}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>{item[nameField]}</span>
+                  {type === 'departments' && item.dept_code && (
+                    <small style={{ color: '#6b7280', fontSize: '0.8em' }}>{item.dept_code}</small>
+                  )}
+                </div>
               </div>
               <div className="list-item-actions">
                 <button type="button" className="btn-settings-edit"   onClick={() => handleEdit(type, item)}><i className="bi bi-pencil"></i> Edit</button>

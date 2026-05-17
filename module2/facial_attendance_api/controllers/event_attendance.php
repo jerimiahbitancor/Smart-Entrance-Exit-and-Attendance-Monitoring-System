@@ -20,12 +20,12 @@ try {
             e.employee_ID,
             e.employee_code,
             CONCAT(e.employee_firstName, ' ', e.employee_LastName) AS fullName,
-            d.department_name,
+            d.dept_name AS department_name,
             a.time_in,
             a.time_out,
             a.status
         FROM employees e
-        JOIN department d ON e.department_ID = d.department_ID
+        JOIN departments d ON e.department_ID = d.id
         JOIN event_target_employees ete
             ON ete.employee_ID = e.employee_ID
             AND ete.event_ID = ?

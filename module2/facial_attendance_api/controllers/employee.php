@@ -33,7 +33,7 @@ if ($method === 'GET') {
     }
 
     try {
-        // Try schema with department/position/email singular table names and columns *_name
+        // Updated to use plural 'departments' and columns 'id', 'dept_name'
         $q1 = "
             SELECT 
                 e.employee_ID,
@@ -43,12 +43,12 @@ if ($method === 'GET') {
                 e.department_ID,
                 e.position_ID,
                 e.email_ID,
-                d.department_name,
+                d.dept_name AS department_name,
                 p.position_name AS position,
                 em.email_address AS email,
                 e.created_at" . ($hasArchivedCol ? ", e.is_archived" : "") . "
             FROM employees e
-            LEFT JOIN department d  ON e.department_ID = d.department_ID
+            LEFT JOIN departments d ON e.department_ID = d.id
             LEFT JOIN position  p   ON e.position_ID  = p.position_ID
             LEFT JOIN email     em  ON e.email_ID     = em.email_ID
             $whereClause
