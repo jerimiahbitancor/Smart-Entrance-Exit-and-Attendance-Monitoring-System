@@ -1049,25 +1049,25 @@ def _generate_embedding_sync(data: ImageRequest) -> dict:
             print(f"\n--- Processing image {idx + 1}/{len(data.images)} ---")
             
             img = base64_to_image(img_str)
-            print(f"  ✓ Image decoded, shape: {img.shape}")
+            print(f"  [OK] Image decoded, shape: {img.shape}")
             
             # Use face detection with landmarks
             faces = detect_faces_with_landmarks(img, data.min_face_size)
-            print(f"  → Faces detected: {len(faces)}")
+            print(f"  -> Faces detected: {len(faces)}")
 
             if not faces:
-                print(f"  ✗ No face detected in image {idx + 1}")
+                print(f"  [ERROR] No face detected in image {idx + 1}")
                 continue
 
             # IMPORTANT: Take ONLY the FIRST face (largest/closest)
             # Sort by face area and take the largest
             if len(faces) > 1:
-                print(f"  ⚠ Multiple faces ({len(faces)}) detected, selecting largest")
+                print(f"  [WARNING] Multiple faces ({len(faces)}) detected, selecting largest")
                 faces.sort(key=lambda x: (x['bbox'][2] - x['bbox'][0]) * (x['bbox'][3] - x['bbox'][1]), reverse=True)
             
             best_face = faces[0]
             quality = best_face["quality"]
-            print(f"  → Selected face quality: {quality:.3f}")
+            print(f"  -> Selected face quality: {quality:.3f}")
             
             # Apply face alignment
             if best_face.get("landmarks") is not None:
@@ -1076,25 +1076,25 @@ def _generate_embedding_sync(data: ImageRequest) -> dict:
                     best_face["landmarks"],
                     best_face["bbox"]
                 )
-                print(f"  → Face alignment applied")
+                print(f"  -> Face alignment applied")
             else:
                 aligned_face = best_face["face"]
-                print(f"  ⚠ No landmarks available")
+                print(f"  [WARNING] No landmarks available")
             
             # Generate embedding
             emb = get_embedding(aligned_face)
             
             if emb is None or len(emb) != 512:
-                print(f"  ✗ Invalid embedding: {len(emb) if emb else 0}")
+                print(f"  [ERROR] Invalid embedding: {len(emb) if emb else 0}")
                 continue
             
             embeddings.append(emb.tolist())
             qualities.append(quality)
             total_faces += 1
-            print(f"  ✓ Success (quality: {quality:.3f})")
+            print(f"  [OK] Success (quality: {quality:.3f})")
 
         except Exception as e:
-            print(f"  ✗ ERROR: {str(e)}")
+            print(f"  [ERROR] {str(e)}")
             import traceback
             traceback.print_exc()
 
