@@ -6,3 +6,19 @@ venv/
 mp_env/
 venv/
 mp_env/
+
+# Electron Cache
+electron-cache/
+**/electron-cache/**
+**/Cache_Data/**
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment files
+.env
+.env.local

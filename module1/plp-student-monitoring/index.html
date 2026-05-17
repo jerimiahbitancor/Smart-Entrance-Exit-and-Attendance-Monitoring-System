@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="src/assets/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ENTRY AND EXIT - PLP STUDENTS</title>
+    <script>
+      // Complete Node.js polyfills for Electron
+      window.global = window;
+      window.process = window.process || { env: {}, argv: [], cwd: () => '/' };
+      if (typeof Buffer === 'undefined') {
+        window.Buffer = { isBuffer: () => false, from: () => '', alloc: () => '' };
+      }
+      if (typeof TextEncoder === 'undefined') {
+        const util = require('util');
+        window.TextEncoder = util.TextEncoder;
+        window.TextDecoder = util.TextDecoder;
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
