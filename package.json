@@ -25,7 +25,10 @@
     "status": "echo '=== System Status ===' && echo 'Backend: http://localhost:3000' && echo 'Electron/Web: http://localhost:5173' && echo 'Face Service: http://localhost:5000' && echo 'Attendance API: http://localhost:8000'"
   },
   "devDependencies": {
+    "and": "^0.0.3",
     "concurrently": "^8.2.2",
+    "install": "^0.13.0",
+    "npm": "^11.14.1",
     "kill-port": "^2.0.1"
   }
 }
