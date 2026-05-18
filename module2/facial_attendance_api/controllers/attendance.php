@@ -28,7 +28,7 @@ if ($request_method === 'GET') {
                 a.status,
                 a.method,
                 e.employee_code,
-                CONCAT(e.employee_firstName, ' ', e.employee_LastName) AS fullName,
+                CONCAT(e.employee_LastName, ', ', e.employee_firstName) AS fullName,
                 d.dept_name AS department_name,
                 ev.event_name,
                 l.location AS location_name

@@ -12,7 +12,7 @@ try {
             a.time_in AS timestamp,
             'Entry' AS type,
             e.employee_code,
-            CONCAT(e.employee_firstName, ' ', e.employee_LastName) AS fullName,
+            CONCAT(e.employee_LastName, ', ', e.employee_firstName) AS fullName,
             d.dept_name AS department_name,
             l.location AS location,
             a.method
@@ -29,7 +29,7 @@ try {
             a.time_out AS timestamp,
             'Exit' AS type,
             e.employee_code,
-            CONCAT(e.employee_firstName, ' ', e.employee_LastName) AS fullName,
+            CONCAT(e.employee_LastName, ', ', e.employee_firstName) AS fullName,
             d.dept_name AS department_name,
             l.location AS location,
             a.method

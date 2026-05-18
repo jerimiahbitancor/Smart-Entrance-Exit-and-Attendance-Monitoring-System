@@ -91,7 +91,7 @@ export default function Sidebar() {
         { type: 'separator', label: 'Employee Attendance Monitoring' },
         { icon: <FiHome />, label: "Attendance Dashboard", path: "/EAMSDashboard" },
         { icon: <FiFileText />, label: "Entry-Exit Records", path: "/entryexit" },
-        { icon: <FiBarChart2 />, label: "Attendance Reports", path: "/employee-reports" },
+        // { icon: <FiBarChart2 />, label: "Attendance Reports", path: "/employee-reports" },
       ];
     } 
     // EAMS Admin gets Student Management
