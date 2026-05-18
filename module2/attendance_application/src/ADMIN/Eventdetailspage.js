@@ -7,6 +7,15 @@ const PLP_LOGO_KEY   = 'plp_logo';
 const DEPT_LOGOS_KEY = 'dept_logos';
 const NAME_KEY       = 'institution_name';
 
+const PDF_PASIG_LOGO_KEY      = 'pdf_pasig_logo';
+const PDF_WORDMARK_KEY        = 'pdf_wordmark_logo';
+const PDF_OFFICE_NAME_KEY     = 'pdf_office_name';
+const PDF_ADDRESS_KEY         = 'pdf_address';
+const PDF_CONTACT_KEY         = 'pdf_contact';
+const PDF_RECORDED_BY_KEY     = 'pdf_recorded_by';
+const PDF_SIGNATORY_KEY       = 'pdf_signatory';
+const PDF_SIGNATORY_TITLE_KEY = 'pdf_signatory_title';
+
 function formatTime(val) {
   if (!val || val === '--------') return '';
   try {
@@ -400,12 +409,16 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
       }));
       const dateStr     = formatDate(eventDate);
 
+      // Fetch branding from settings
+      const settingsPasigLogo = localStorage.getItem(PDF_PASIG_LOGO_KEY) || '';
+      const settingsWordmark  = localStorage.getItem(PDF_WORDMARK_KEY) || '';
+
       // Pre-load logos as base64
       const [pasigLogoB64, pasigWordmarkB64, plpLogoB64, collegeLogoB64] = await Promise.all([
-        includePasigLogos ? loadImageAsBase64('/Pasig_Logo.PNG') : Promise.resolve(''),
-        includePasigLogos ? loadImageAsBase64('/Pasig_Wordmark.PNG') : Promise.resolve(''),
-        plpLogo ? loadImageAsBase64(plpLogo) : Promise.resolve(''),
-        collegeLogo ? loadImageAsBase64(collegeLogo) : Promise.resolve(''),
+        includePasigLogos ? (settingsPasigLogo ? Promise.resolve(settingsPasigLogo) : loadImageAsBase64('/Pasig_Logo.PNG')) : Promise.resolve(''),
+        includePasigLogos ? (settingsWordmark ? Promise.resolve(settingsWordmark) : loadImageAsBase64('/Pasig_Wordmark.PNG')) : Promise.resolve(''),
+        plpLogo ? (plpLogo.startsWith('data:') ? Promise.resolve(plpLogo) : loadImageAsBase64(plpLogo)) : Promise.resolve(''),
+        collegeLogo ? (collegeLogo.startsWith('data:') ? Promise.resolve(collegeLogo) : loadImageAsBase64(collegeLogo)) : Promise.resolve(''),
       ]);
 
       const ROWS_PER_PAGE = 22;
@@ -536,13 +549,13 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
           </div>
 
           <div class="instruction">
-            <strong>&#10003;</strong> means present; if absent <strong>A</strong> and if late <strong>L</strong>.
+            <strong>&#10003;</strong> means present; if absent <strong>A</strong></strong>.
           </div>
 
           <table>
             <colgroup><col class="col-no" /><col /><col class="col-pres" /><col class="col-abs" /></colgroup>
             <thead>
-              <tr><th>No.</th><th>Name of Employee</th><th>PRESENT</th><th>ABSENT / LATE</th></tr>
+              <tr><th>No.</th><th>Name of Employee</th><th>PRESENT</th><th>ABSENT</th></tr>
             </thead>
             <tbody>
               ${rowsHtml}
@@ -555,7 +568,7 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
             <div class="stats-box">
               <span>Total Employees: <strong>${exportRows.length}</strong></span>
               <span>Attended: <strong>${attended}</strong></span>
-              <span>Absent / Late: <strong>${absent}</strong></span>
+              <span>Absent: <strong>${absent}</strong></span>
               <span>Attendance Rate: <strong>${attendRate}%</strong></span>
             </div>
 
@@ -882,19 +895,19 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
       <div className="dept-chips-wrap">
         {allDepartments.map((dept) => {
           const deptEmployees = allEmployees.filter(
-            emp => Number(emp.department_ID) === Number(dept.department_ID)
+            emp => Number(emp.department_ID) === Number(dept.id)
           );
           const allSelected = deptEmployees.length > 0 &&
             deptEmployees.every(emp => selectedEmployeeIds.has(Number(emp.employee_ID)));
           return (
-            <label key={dept.department_ID} className={`dept-chip ${allSelected ? 'dept-chip--selected' : ''}`}>
+            <label key={dept.id} className={`dept-chip ${allSelected ? 'dept-chip--selected' : ''}`}>
               <input
                 type="checkbox"
                 checked={allSelected}
-                onChange={(e) => handleDepartmentToggle(dept.department_ID, e.target.checked)}
+                onChange={(e) => handleDepartmentToggle(dept.id, e.target.checked)}
                 style={{ accentColor: '#28a745', width: 12, height: 12 }}
               />
-              {dept.department_name}
+              {dept.dept_name || dept.department_name}
             </label>
           );
         })}

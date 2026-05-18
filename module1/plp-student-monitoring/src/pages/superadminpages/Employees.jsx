@@ -18,6 +18,8 @@ import {
 import '../../css/Employee.css';
 
 function EmployeesPage() {
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);  
   const [employees, setEmployees]                   = useState([]);
   const [departments, setDepartments]               = useState([]);
   const [positions, setPositions]                   = useState([]);
@@ -342,6 +344,16 @@ try {
       emp.department_name === selectedDepartment;
     return matchSearch && matchDept;
   });
+
+    useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedDepartment]);
+
+  const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
+  const paginatedEmployees = filteredEmployees.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const openAddModal = () => {
     setIsEditing(false);
@@ -775,7 +787,7 @@ const closeCamera = () => {
     <div className="admin-page">
       <div className="page-header-section">
         <h1 className="page-title">Employee Management</h1>
-        <Button className="create-event-btn" onClick={openAddModal}>+ Add Employee</Button>
+        <Button className="add-button" onClick={openAddModal}>+ Add Employee</Button>
       </div>
 
       <Card className="content-card">
@@ -805,7 +817,7 @@ const closeCamera = () => {
             </Col>
           </Row>
 
-          <Table striped bordered hover responsive>
+          <Table striped bordered hover responsive className="employee-table">
             <thead>
               <tr>
                 <th>Code</th>
@@ -820,7 +832,7 @@ const closeCamera = () => {
               {filteredEmployees.length === 0 ? (
                 <tr><td colSpan="6" className="text-center py-4 text-muted">No employees found</td></tr>
               ) : (
-                filteredEmployees.map(emp => (
+                paginatedEmployees.map(emp => (
                   <tr key={emp.employee_ID}>
                     <td>{emp.employee_code}</td>
                     <td>{emp.employee_LastName}</td>
@@ -863,6 +875,37 @@ const closeCamera = () => {
               )}
             </tbody>
           </Table>
+
+          {totalPages > 1 && (
+  <div className="emp-pagination">
+    <span className="emp-pagination-info">
+      Showing {filteredEmployees.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredEmployees.length)} of {filteredEmployees.length} employees
+    </span>
+    <div className="emp-pagination-controls">
+      <button
+        className="emp-page-btn"
+        onClick={() => setCurrentPage(p => p - 1)}
+        disabled={currentPage === 1}
+      >← Prev</button>
+
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+        <button
+          key={page}
+          className={`emp-page-btn ${page === currentPage ? 'active' : ''}`}
+          onClick={() => setCurrentPage(page)}
+        >
+          {page}
+        </button>
+      ))}
+
+      <button
+        className="emp-page-btn"
+        onClick={() => setCurrentPage(p => p + 1)}
+        disabled={currentPage === totalPages}
+      >Next →</button>
+    </div>
+  </div>
+)}
 
         </Card.Body>
       </Card>

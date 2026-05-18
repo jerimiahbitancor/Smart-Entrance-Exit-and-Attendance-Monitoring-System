@@ -398,6 +398,20 @@
 
 
 /* ===================== PRINT ===================== */
+
+/* Force logs table body text to be visible (black and bold).
+   This overrides any global `td` color rules that make text white. */
+.logs-table td {
+  color: #000 !important;
+  font-weight: 700 !important;
+}
+
+/* Keep intentionally muted text readable but lower emphasis */
+.logs-table td.text-muted,
+.logs-table td[aria-muted="true"] {
+  color: #6b7280 !important;
+  font-weight: 600 !important;
+}
 @media print {
   .export-button {
     display: none;
