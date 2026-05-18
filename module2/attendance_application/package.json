@@ -7,26 +7,32 @@
   "dependencies": {
     "axios": "^1.7.2",
     "bootstrap": "^5.3.2",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
     "face-api.js": "^0.22.2",
     "html5-qrcode": "^2.3.8",
+    "process": "^0.11.10",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
+    "react-app-rewired": "^2.2.1",
     "react-bootstrap": "^2.10.0",
     "react-dom": "^18.3.1",
     "react-icon": "^1.0.0",
     "react-icons": "^5.6.0",
     "react-scripts": "5.0.1",
     "recharts": "^3.7.0",
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.5",
     "web-vitals": "^3.5.0"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "electron": "electron .",
-    "dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && npm run electron\""
-  },
+"scripts": {
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject",
+  "electron": "electron .",
+  "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && npm run electron\""
+},
   "eslintConfig": {
     "extends": [
       "react-app"
@@ -47,6 +53,7 @@
   "devDependencies": {
     "concurrently": "^9.2.1",
     "electron": "^41.3.0",
-    "wait-on": "^9.0.6"
+    "electron-rebuild": "^3.2.9",
+    "wait-on": "^9.0.10"
   }
 }
