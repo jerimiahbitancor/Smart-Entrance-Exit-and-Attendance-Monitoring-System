@@ -9,7 +9,7 @@
     "client-web": "cd module1/plp-student-monitoring && npm run dev",
     "client-electron": "cd module1/plp-student-monitoring && npm run electron-dev",
     "face-service": "cd module1/python && python face_service.py",
-    "attendance-api": "cd module2/facial_attendance_api &&  php -S localhost:8000",
+    "attendance-api": "cd module2/facial_attendance_api && C:\\xampp\\php\\php.exe || D:\\xampp\\php\\php.exe -S localhost:8000",
     "attendance-client": "cd module2/attendance_application && npm start",
     "build-electron": "cd module1/plp-student-monitoring && npm run build-electron",
     "package-electron": "cd module1/plp-student-monitoring && npm run package",
