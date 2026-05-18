@@ -4,6 +4,11 @@ import { getEntryExitLogs, getAttendance, getEmployees, getEvents, getDepartment
 from '../../../../backend/src/api';
 import '../../css/Entryexit.css';
 
+const PLP_LOGO_KEY   = 'plp_logo';
+const NAME_KEY       = 'institution_name';
+const PDF_PASIG_LOGO_KEY      = 'pdf_pasig_logo';
+const PDF_WORDMARK_KEY        = 'pdf_wordmark_logo';
+
 function EntryExitPage() {
 
   const [logs, setLogs] = useState([]);
@@ -23,8 +28,8 @@ function EntryExitPage() {
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
 
-  const plpLogo = localStorage.getItem('plp_logo') || '';
-  const institutionName = localStorage.getItem('institution_name') || 'Pamantasan ng Lungsod ng Pasig';
+  const plpLogo = localStorage.getItem(PLP_LOGO_KEY) || '';
+  const institutionName = localStorage.getItem(NAME_KEY) || 'Pamantasan ng Lungsod ng Pasig';
 
   // ===============================
   // PDF EXPORT HELPERS
@@ -73,11 +78,15 @@ function EntryExitPage() {
 
       const collegeLogo = (activeFilterCat === 'dept') ? (dbDeptLogos[activeFilterVal] || '') : '';
 
+      // Fetch branding from settings
+      const settingsPasigLogo = localStorage.getItem(PDF_PASIG_LOGO_KEY) || '';
+      const settingsWordmark  = localStorage.getItem(PDF_WORDMARK_KEY) || '';
+
       const [pasigLogoB64, pasigWordmarkB64, plpLogoB64, collegeLogoB64] = await Promise.all([
-        includePasigLogos ? loadImageAsBase64('/Pasig_Logo.PNG') : Promise.resolve(''),
-        includePasigLogos ? loadImageAsBase64('/Pasig_Wordmark.PNG') : Promise.resolve(''),
-        plpLogo ? loadImageAsBase64(plpLogo) : Promise.resolve(''),
-        collegeLogo ? loadImageAsBase64(collegeLogo) : Promise.resolve(''),
+        includePasigLogos ? (settingsPasigLogo ? Promise.resolve(settingsPasigLogo) : loadImageAsBase64('/Pasig_Logo.PNG')) : Promise.resolve(''),
+        includePasigLogos ? (settingsWordmark ? Promise.resolve(settingsWordmark) : loadImageAsBase64('/Pasig_Wordmark.PNG')) : Promise.resolve(''),
+        plpLogo ? (plpLogo.startsWith('data:') ? Promise.resolve(plpLogo) : loadImageAsBase64(plpLogo)) : Promise.resolve(''),
+        collegeLogo ? (collegeLogo.startsWith('data:') ? Promise.resolve(collegeLogo) : loadImageAsBase64(collegeLogo)) : Promise.resolve(''),
       ]);
 
       const rowsHtml = filteredLogs.map((log, i) => `
@@ -101,9 +110,10 @@ function EntryExitPage() {
 
       container.innerHTML = `
         <style>
-          .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-          .logo-area { display: flex; align-items: center; gap: 10px; }
-          .logo-area img { height: 60px; }
+          .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #1a5f2e; padding-bottom: 10px; }
+          .logo-area { display: flex; align-items: center; gap: 15px; }
+          .logo-area img { height: 60px; object-fit: contain; }
+          .logo-divider { width: 1.5px; height: 50px; background: #ddd; margin: 0 5px; }
           .header-info { text-align: right; }
           .header-title { font-size: 16pt; font-weight: bold; color: #1a5f2e; margin-bottom: 5px; }
           table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -115,6 +125,8 @@ function EntryExitPage() {
         <div class="header">
           <div class="logo-area">
             ${pasigLogoB64 ? `<img src="${pasigLogoB64}" />` : ''}
+            ${pasigWordmarkB64 ? `<img src="${pasigWordmarkB64}" style="height:45px;" />` : ''}
+            ${(pasigLogoB64 || pasigWordmarkB64) && (plpLogoB64 || collegeLogoB64) ? `<div class="logo-divider"></div>` : ''}
             ${plpLogoB64 ? `<img src="${plpLogoB64}" />` : ''}
             ${collegeLogoB64 ? `<img src="${collegeLogoB64}" />` : ''}
           </div>
@@ -470,7 +482,7 @@ function EntryExitPage() {
               </div>
             </div>
             <div style={{ overflowX: 'auto', maxHeight: '55vh', overflowY: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <table className="logs-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                 <thead>
                   <tr style={{ background: '#1a5f2e', color: 'white', position: 'sticky', top: 0 }}>
                     <th style={{ padding: '9px 12px', textAlign: 'left', fontSize: '11px', textTransform: 'uppercase' }}>#</th>

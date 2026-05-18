@@ -537,7 +537,7 @@ function EmployeePage({ onBack, onNavigateAdmin }) {
           if (sim > bestScore) { bestScore = sim; bestEmp = emp; }
         }
 
-        const MIN_SIMILARITY = 0.90;
+        const MIN_SIMILARITY = 0.95;
 
         if (bestEmp && bestScore > MIN_SIMILARITY) {
           const detectedName = `${bestEmp.employee_firstName} ${bestEmp.employee_LastName}`;

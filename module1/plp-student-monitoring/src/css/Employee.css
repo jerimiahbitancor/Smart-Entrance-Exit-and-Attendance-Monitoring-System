@@ -207,14 +207,15 @@
 }
 
 .employee-table thead th {
-  background: transparent !important;
-  color: #333;
-  font-weight: 700;
-  font-size: 12.5px;
+  background: #01311d !important;   /* exact match to Users.css --color-primary-dark */
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 14px;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  padding: 11px 16px;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.09);
+  letter-spacing: 0.5px;
+  padding: 12px 16px;
+  border-bottom: none;
+  white-space: nowrap;
 }
 
 .employee-table tbody tr {
@@ -227,6 +228,8 @@
 }
 
 .employee-table tbody td {
+  font-weight: 700;
+  text-transform: uppercase;
   padding: 14px 16px;
   vertical-align: middle;
   border-bottom: 1px solid rgba(0, 0, 0, 0.055);
@@ -741,6 +744,39 @@
   }
 }
 
+.add-button,
+a.add-button,
+button.add-button {
+  background: rgba(10, 40, 20, 0.82) !important;
+  border: 2px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 14px !important;
+  padding: 13px 26px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  color: white !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.28s ease;
+  white-space: nowrap;
+}
+
+.add-button:hover,
+.add-button:focus,
+.add-button:active {
+  background: rgba(20, 80, 40, 0.95) !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+
 
 @media print {
   .add-button,
@@ -877,4 +913,81 @@
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(40, 167, 69, 0.38);
   color: white !important;
+}
+
+.emp-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.emp-pagination-info {
+  font-size: 13px;
+  color: #666;
+}
+
+.emp-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.emp-page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #ddd;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.28s ease;
+  white-space: nowrap;
+}
+
+.emp-page-btn:hover:not(:disabled) {
+  background-color: #f5f5f5;
+  border-color: #01311d;
+  color: #01311d;
+}
+
+.emp-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.emp-page-btn.active {
+  background-color: #01311d;
+  border-color: #01311d;
+  color: white;
+}
+
+/* Responsive pagination */
+@media (max-width: 576px) {
+  .emp-pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .emp-pagination-controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .emp-page-btn {
+    min-width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
 }
