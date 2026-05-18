@@ -52,7 +52,7 @@ function EditUser({ onClose, onUserUpdated, userEmail }) {
       setFetchLoading(true);
       setShowLoadingPopup(true);
       
-      const response = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(userEmail)}`);
+      const response = await fetch(`http://192.168.0.10:5000/api/users/${encodeURIComponent(userEmail)}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch user data');
@@ -247,7 +247,7 @@ function EditUser({ onClose, onUserUpdated, userEmail }) {
         }
       });
 
-      const response = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(userEmail)}`, {
+      const response = await fetch(`http://192.168.0.10:5000/api/users/${encodeURIComponent(userEmail)}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -272,7 +272,7 @@ function EditUser({ onClose, onUserUpdated, userEmail }) {
         showConfirmButton: false
       });
 
-      const updatedUserResponse = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(email)}`);
+      const updatedUserResponse = await fetch(`http://192.168.0.10:5000/api/users/${encodeURIComponent(email)}`);
       const updatedUser = await updatedUserResponse.json();
 
       onUserUpdated(updatedUser);

@@ -205,7 +205,7 @@ function FaceRecognition({ mode = 'ENTRY' }) {
     const imageData = canvas.toDataURL('image/jpeg', 0.92);
 
     try {
-      const res    = await fetch('http://localhost:5000/api/recognize', {
+      const res    = await fetch('http://192.168.0.10:5000/api/recognize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: imageData, mode }),

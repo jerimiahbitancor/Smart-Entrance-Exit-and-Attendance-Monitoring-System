@@ -17,7 +17,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/forgot-password/send-code', {
+      const response = await fetch('http://192.168.0.10:5000/api/forgot-password/send-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/forgot-password/verify-code', {
+      const response = await fetch('http://192.168.0.10:5000/api/forgot-password/verify-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

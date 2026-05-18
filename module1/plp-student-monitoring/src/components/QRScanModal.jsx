@@ -42,7 +42,7 @@ function QRScanModal({ onClose, mode = 'ENTRY' }) {
     try {
       console.log('📱 Raw QR data:', qrData);
       
-      const res = await fetch('http://localhost:5000/api/qrscan', {
+      const res = await fetch('http://192.168.0.10:5000/api/qrscan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qr_data: qrData, mode }),
