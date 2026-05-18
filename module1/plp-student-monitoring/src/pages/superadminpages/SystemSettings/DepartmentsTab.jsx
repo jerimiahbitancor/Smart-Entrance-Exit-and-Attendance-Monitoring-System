@@ -16,10 +16,58 @@ function DepartmentsTab() {
   const [editForm, setEditForm] = useState({
     dept_code: '',
     dept_name: '',
+    logo: null,
     status: 'Active'
   });
   const [showAddModal, setShowAddModal] = useState(false);
   const [totalDepartments, setTotalDepartments] = useState(0);
+
+  const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 150;
+          if (width > maxDim) {
+            height = (height * maxDim) / width;
+            width = maxDim;
+          }
+          if (height > maxDim) {
+            width = (width * maxDim) / height;
+            height = maxDim;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/png', 0.7));
+        };
+      };
+      reader.onerror = reject;
+    });
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.match('image.*')) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid File',
+          text: 'Please select an image file.',
+        });
+        return;
+      }
+      const base64 = await compressImage(file);
+      setEditForm(prev => ({ ...prev, logo: base64 }));
+    }
+  };
 
   const fetchTotalDepartments = async () => {
     try {
@@ -101,6 +149,7 @@ function DepartmentsTab() {
     setEditForm({
       dept_code: dept.dept_code || '',
       dept_name: dept.dept_name || (typeof dept === 'string' ? dept : ''),
+      logo: dept.logo || null,
       status: dept.status || 'Active'
     });
   };
@@ -292,6 +341,7 @@ function DepartmentsTab() {
           <thead>
             <tr>
               <th>No.</th>
+              <th>Logo</th>
               <th>Department Code</th>
               <th>Department Name</th>
               <th>Status</th>
@@ -305,10 +355,26 @@ function DepartmentsTab() {
                 const isString = typeof dept === 'string';
                 const deptName = isString ? dept : (dept.dept_name || 'Unnamed');
                 const isActive = (dept.status || 'Active').toLowerCase() === 'active';
+                const logo = dept.logo;
 
                 return (
                   <tr key={dept.id || deptName || idx}>
                     <td>{(safePage - 1) * ROWS_PER_PAGE + idx + 1}</td>
+                    <td>
+                      <div className="dept-logo-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {logo ? (
+                          <img 
+                            src={logo} 
+                            alt={`${deptName} logo`} 
+                            style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '4px' }} 
+                          />
+                        ) : (
+                          <div style={{ width: '40px', height: '40px', background: '#f0f0f0', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#999' }}>
+                            No Logo
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td>{isString ? 'N/A' : (dept.dept_code || 'N/A')}</td>
                     <td>{deptName}</td>
                     <td>
@@ -420,6 +486,25 @@ function DepartmentsTab() {
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                   </select>
+                </div>
+
+                <div className="modal-field">
+                  <label className="modal-label">Department Logo</label>
+                  <div className="dept-logo-upload" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <div className="logo-preview" style={{ width: '60px', height: '60px', border: '1px solid #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                      {editForm.logo ? (
+                        <img src={editForm.logo} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      ) : (
+                        <span style={{ fontSize: '10px', color: '#999' }}>No Logo</span>
+                      )}
+                    </div>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleLogoUpload} 
+                      style={{ fontSize: '12px' }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

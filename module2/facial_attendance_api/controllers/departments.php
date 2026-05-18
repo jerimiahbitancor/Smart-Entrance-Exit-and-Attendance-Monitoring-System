@@ -19,7 +19,7 @@ if ($method === "OPTIONS") {
 // ======================================================
 if ($method === "GET") {
     try {
-        $q = "SELECT id, dept_code, dept_name, status, created_at, updated_at FROM departments ORDER BY dept_name";
+        $q = "SELECT id, dept_code, dept_name, logo, status, created_at, updated_at FROM departments ORDER BY dept_name";
         $stmt = $conn->prepare($q);
         $stmt->execute();
         echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
@@ -39,6 +39,7 @@ if ($method === "POST") {
     $data = json_decode(file_get_contents("php://input"), true);
     $dept_name = trim($data["dept_name"] ?? "");
     $dept_code = trim($data["dept_code"] ?? "");
+    $logo = $data["logo"] ?? null;
 
     if ($dept_name === "") {
         echo json_encode([
@@ -49,8 +50,8 @@ if ($method === "POST") {
     }
 
     try {
-        $insert = $conn->prepare("INSERT INTO departments (dept_code, dept_name) VALUES (?, ?)");
-        $insert->execute([$dept_code, $dept_name]);
+        $insert = $conn->prepare("INSERT INTO departments (dept_code, dept_name, logo) VALUES (?, ?, ?)");
+        $insert->execute([$dept_code, $dept_name, $logo]);
 
         echo json_encode([
             "success" => true,
@@ -73,6 +74,7 @@ if ($method === "PUT") {
     $data = json_decode(file_get_contents("php://input"), true);
     $dept_name = trim($data["dept_name"] ?? "");
     $dept_code = trim($data["dept_code"] ?? "");
+    $logo = $data["logo"] ?? null;
 
     if (!$id || $dept_name === "") {
         echo json_encode([
@@ -83,8 +85,8 @@ if ($method === "PUT") {
     }
 
     try {
-        $update = $conn->prepare("UPDATE departments SET dept_name = ?, dept_code = ? WHERE id = ?");
-        $update->execute([$dept_name, $dept_code, $id]);
+        $update = $conn->prepare("UPDATE departments SET dept_name = ?, dept_code = ?, logo = ? WHERE id = ?");
+        $update->execute([$dept_name, $dept_code, $logo, $id]);
 
         echo json_encode([
             "success" => true,

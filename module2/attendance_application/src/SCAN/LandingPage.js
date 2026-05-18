@@ -29,6 +29,7 @@ function EmployeePage({ onBack, onNavigateAdmin }) {
   const [selectedEvent, setSelectedEvent] = useState('');
   const [eventExpanded, setEventExpanded] = useState(false);
   const [recognizedUser, setRecognizedUser] = useState(null);
+  const [isUnknownDetected, setIsUnknownDetected] = useState(false);
   const [attendanceType, setAttendanceType] = useState('');
   const [attendanceStatus, setAttendanceStatus] = useState(null); // 'success' or 'error'
   const [attendanceMsg, setAttendanceMsg] = useState('');
@@ -514,6 +515,7 @@ function EmployeePage({ onBack, onNavigateAdmin }) {
         if (!detection) {
           setCurrentDetectedName('');
           setCurrentConfidence(0);
+          setIsUnknownDetected(false);
           return;
         }
 
@@ -535,7 +537,7 @@ function EmployeePage({ onBack, onNavigateAdmin }) {
           if (sim > bestScore) { bestScore = sim; bestEmp = emp; }
         }
 
-        const MIN_SIMILARITY = 0.95;
+        const MIN_SIMILARITY = 0.90;
 
         if (bestEmp && bestScore > MIN_SIMILARITY) {
           const detectedName = `${bestEmp.employee_firstName} ${bestEmp.employee_LastName}`;
@@ -550,6 +552,7 @@ function EmployeePage({ onBack, onNavigateAdmin }) {
 
           setCurrentDetectedName(detectedName);
           setCurrentConfidence(confidencePercent);
+          setIsUnknownDetected(false);
 
           const newUser = {
             name: detectedName,
@@ -569,6 +572,7 @@ function EmployeePage({ onBack, onNavigateAdmin }) {
         } else {
           setCurrentDetectedName('');
           setCurrentConfidence(0);
+          setIsUnknownDetected(true);
         }
       } catch (err) {
         console.error("Recognition error:", err);
@@ -662,6 +666,15 @@ function EmployeePage({ onBack, onNavigateAdmin }) {
 
       setAttendanceStatus('success');
       setAttendanceMsg(res?.message || `${mode} Successful!`);
+
+      // Notify other tabs (like EntryExitPage) that a new log was created
+      try {
+        const channel = new BroadcastChannel('attendance_updates');
+        channel.postMessage('new_log_detected');
+        channel.close();
+      } catch (err) {
+        console.warn('BroadcastChannel notification failed', err);
+      }
       
       setTimeout(() => {
         setAttendanceStatus(null);
@@ -1163,18 +1176,32 @@ function EmployeePage({ onBack, onNavigateAdmin }) {
                     </h5>
 
                     {!recognizedUser ? (
-                      /* ── Awaiting Detection State ── */
+                      /* ── Awaiting Detection or Unknown State ── */
                       <div className="detected-profile-awaiting flex-grow-1 d-flex flex-column align-items-center justify-content-center" style={{ minHeight: 0, overflow: 'hidden' }}>
-                        <div className="awaiting-avatar-circle mb-3">
-                          <i className="bi bi-person-bounding-box"></i>
-                        </div>
-                        <h5 className="fw-semibold text-muted mb-2">Awaiting Detection</h5>
-                        <p className="text-muted text-center small px-3">
-                          Start the camera and position your face in front of the scanner. The detected employee will appear here.
-                        </p>
-                        <div className="awaiting-dots mt-2">
-                          <span></span><span></span><span></span>
-                        </div>
+                        {isUnknownDetected ? (
+                          <>
+                            <div className="awaiting-avatar-circle mb-3 unknown-detected" style={{ background: 'rgba(220, 53, 69, 0.1)', border: '2px solid #dc3545' }}>
+                              <i className="bi bi-person-x-fill text-danger"></i>
+                            </div>
+                            <h5 className="fw-semibold text-danger mb-2">Unknown Face Detected</h5>
+                            <p className="text-muted text-center small px-3">
+                              The scanner detected a face but could not match it with any employee records. Please ensure you are registered or try again with better lighting.
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <div className="awaiting-avatar-circle mb-3">
+                              <i className="bi bi-person-bounding-box"></i>
+                            </div>
+                            <h5 className="fw-semibold text-muted mb-2">Awaiting Detection</h5>
+                            <p className="text-muted text-center small px-3">
+                              Start the camera and position your face in front of the scanner. The detected employee will appear here.
+                            </p>
+                            <div className="awaiting-dots mt-2">
+                              <span></span><span></span><span></span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     ) : (
                       /* ── Employee Identified State ── */

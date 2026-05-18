@@ -23,7 +23,7 @@ router.get('/departments', async (req, res) => {
     try {
         const { search, status } = req.query;
         
-        let query = 'SELECT id, dept_code, dept_name, status, created_at, updated_at FROM departments WHERE 1=1';
+        let query = 'SELECT id, dept_code, dept_name, logo, status, created_at, updated_at FROM departments WHERE 1=1';
         let params = [];
         
         if (search) {
@@ -50,7 +50,7 @@ router.get('/departments', async (req, res) => {
 router.get('/departments/:id', async (req, res) => {
     try {
         const [rows] = await pool.query(
-            'SELECT id, dept_code, dept_name, status, created_at, updated_at FROM departments WHERE id = ?', 
+            'SELECT id, dept_code, dept_name, logo, status, created_at, updated_at FROM departments WHERE id = ?', 
             [req.params.id]
         );
         
@@ -68,7 +68,7 @@ router.get('/departments/:id', async (req, res) => {
 // Create new department
 router.post('/departments', async (req, res) => {
     try {
-        const { dept_code, dept_name, status } = req.body;
+        const { dept_code, dept_name, logo, status } = req.body;
         const created_at = getPHDateTime();
         const updated_at = getPHDateTime();
         
@@ -77,12 +77,12 @@ router.post('/departments', async (req, res) => {
         }
         
         const [result] = await pool.query(
-            'INSERT INTO departments (dept_code, dept_name, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
-            [dept_code.toUpperCase(), dept_name, status || 'Active', created_at, updated_at]
+            'INSERT INTO departments (dept_code, dept_name, logo, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+            [dept_code.toUpperCase(), dept_name, logo || null, status || 'Active', created_at, updated_at]
         );
         
         const [newDepartment] = await pool.query(
-            'SELECT id, dept_code, dept_name, status, created_at, updated_at FROM departments WHERE id = ?', 
+            'SELECT id, dept_code, dept_name, logo, status, created_at, updated_at FROM departments WHERE id = ?', 
             [result.insertId]
         );
         
@@ -99,7 +99,7 @@ router.post('/departments', async (req, res) => {
 // Update department
 router.put('/departments/:id', async (req, res) => {
     try {
-        const { dept_code, dept_name, status } = req.body;
+        const { dept_code, dept_name, logo, status } = req.body;
         const updated_at = getPHDateTime();
         
         if (!dept_code || !dept_name) {
@@ -107,8 +107,8 @@ router.put('/departments/:id', async (req, res) => {
         }
         
         const [result] = await pool.query(
-            'UPDATE departments SET dept_code = ?, dept_name = ?, status = ?, updated_at = ? WHERE id = ?',
-            [dept_code.toUpperCase(), dept_name, status, updated_at, req.params.id]
+            'UPDATE departments SET dept_code = ?, dept_name = ?, logo = ?, status = ?, updated_at = ? WHERE id = ?',
+            [dept_code.toUpperCase(), dept_name, logo, status, updated_at, req.params.id]
         );
         
         if (result.affectedRows === 0) {
@@ -116,7 +116,7 @@ router.put('/departments/:id', async (req, res) => {
         }
         
         const [updatedDepartment] = await pool.query(
-            'SELECT id, dept_code, dept_name, status, created_at, updated_at FROM departments WHERE id = ?', 
+            'SELECT id, dept_code, dept_name, logo, status, created_at, updated_at FROM departments WHERE id = ?', 
             [req.params.id]
         );
         
