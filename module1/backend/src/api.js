@@ -6,7 +6,7 @@ import axios from "axios";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "http://localhost/EMP/facial_attendance_api/controllers";
+  "http://localhost/Smart Attendance System\\Smart-Entrance-Exit-and-Attendance-Monitoring-System\\module2\\facial_attendance_api\\controllers";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -143,12 +143,12 @@ export const saveEmployeePhotos = async (employeeId, photoItems) => {
 
 export const deleteEmployeePhoto = async (photoId) => {
   try {
-    const { data } = await api.delete('/employee_photos.php?photo_id=${photoId}');
+    const { data } = await api.delete(`/employee_photos.php?photo_id=${photoId}`);
     return data;
   } catch (error) {
     handleError(error);
   }
-}
+};
 
 
 // ====================================
