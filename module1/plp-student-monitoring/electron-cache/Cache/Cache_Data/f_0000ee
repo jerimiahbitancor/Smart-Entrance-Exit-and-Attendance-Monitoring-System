@@ -1,0 +1,402 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/pages/ForgotPass2.jsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=f2d246ea"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$();
+import __vite__cjsImport1_react from "/node_modules/.vite/deps/react.js?v=f2d246ea"; const useState = __vite__cjsImport1_react["useState"];
+import { useLocation, useNavigate } from "/node_modules/.vite/deps/react-router-dom.js?v=555f0403";
+import "/src/css/ForgotPass.css";
+import logo from "/src/assets/logo2.png?import";
+import { LuScanFace } from "/node_modules/.vite/deps/react-icons_lu.js?v=ee3f25fd";
+import { FaEye, FaEyeSlash } from "/node_modules/.vite/deps/react-icons_fa.js?v=b6cace68";
+import Swal from "/node_modules/.vite/deps/sweetalert2.js?v=1b208f3f";
+export default function ForgotPasswordStep2() {
+  _s();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { email, code } = location.state || {};
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const validatePassword = (password) => {
+    const errors = [];
+    if (password.length < 8) {
+      errors.push("at least 8 characters");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("one uppercase letter");
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push("one lowercase letter");
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push("one number");
+    }
+    if (!/[@$!%*?&]/.test(password)) {
+      errors.push("one special character (@$!%*?&)");
+    }
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Password Mismatch",
+        text: "Passwords do not match!"
+      });
+      return;
+    }
+    const validation = validatePassword(newPassword);
+    if (!validation.isValid) {
+      Swal.fire({
+        icon: "error",
+        title: "Weak Password",
+        html: `Password must contain:<br>• ${validation.errors.join("<br>• ")}`,
+        confirmButtonColor: "#3085d6"
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch("http://localhost:5000/api/forgot-password/reset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          code,
+          newPassword
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        await Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Your password has been reset successfully",
+          timer: 2e3,
+          showConfirmButton: false
+        });
+        navigate("/");
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: data.message
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Connection Error",
+        text: "Failed to reset password"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
+  if (!email || !code) {
+    navigate("/forgotpass");
+    return null;
+  }
+  return /* @__PURE__ */ jsxDEV("div", { className: "login-container", children: [
+    /* @__PURE__ */ jsxDEV(
+      LuScanFace,
+      {
+        title: "Go To Entry-Exit Students",
+        className: "top-left-icon",
+        onClick: () => navigate("/facerecog")
+      },
+      void 0,
+      false,
+      {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+        lineNumber: 123,
+        columnNumber: 7
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV("div", { className: "login-wrapper", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "login-header-container", children: [
+        /* @__PURE__ */ jsxDEV("img", { src: logo, alt: "System Logo", className: "login-icon" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+          lineNumber: 131,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("h1", { className: "logintext", children: "RESET PASSWORD" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+          lineNumber: 132,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+        lineNumber: 130,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "login-card", children: [
+        /* @__PURE__ */ jsxDEV("form", { className: "login-form", onSubmit: handleResetPassword, children: [
+          /* @__PURE__ */ jsxDEV("div", { className: "input-group", children: [
+            /* @__PURE__ */ jsxDEV("label", { htmlFor: "email", style: { color: "white" }, children: "Email" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+              lineNumber: 138,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV(
+              "input",
+              {
+                id: "email",
+                type: "email",
+                value: email,
+                disabled: true,
+                className: "disabled-input"
+              },
+              void 0,
+              false,
+              {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+                lineNumber: 139,
+                columnNumber: 15
+              },
+              this
+            )
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+            lineNumber: 137,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "input-group", children: [
+            /* @__PURE__ */ jsxDEV("label", { htmlFor: "newPassword", style: { color: "white" }, children: "New Password" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+              lineNumber: 149,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "password-input-wrapper", children: [
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  id: "newPassword",
+                  type: showPassword ? "text" : "password",
+                  placeholder: "Enter new password",
+                  value: newPassword,
+                  onChange: (e) => setNewPassword(e.target.value),
+                  required: true,
+                  disabled: loading
+                },
+                void 0,
+                false,
+                {
+                  fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+                  lineNumber: 151,
+                  columnNumber: 17
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(
+                "button",
+                {
+                  type: "button",
+                  className: "show-password-btn",
+                  onClick: toggleShowPassword,
+                  tabIndex: "-1",
+                  children: showPassword ? /* @__PURE__ */ jsxDEV(FaEyeSlash, {}, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+                    lineNumber: 166,
+                    columnNumber: 35
+                  }, this) : /* @__PURE__ */ jsxDEV(FaEye, {}, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+                    lineNumber: 166,
+                    columnNumber: 52
+                  }, this)
+                },
+                void 0,
+                false,
+                {
+                  fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+                  lineNumber: 160,
+                  columnNumber: 17
+                },
+                this
+              )
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+              lineNumber: 150,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV("small", { className: "password-hint", children: "Must contain: 8+ chars, uppercase, lowercase, number, and special char (@$!%*?&)" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+              lineNumber: 169,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+            lineNumber: 148,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "input-group", children: [
+            /* @__PURE__ */ jsxDEV("label", { htmlFor: "confirmPassword", children: "Confirm Password" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+              lineNumber: 175,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "password-input-wrapper", children: [
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  id: "confirmPassword",
+                  type: showPassword ? "text" : "password",
+                  placeholder: "Confirm new password",
+                  value: confirmPassword,
+                  onChange: (e) => setConfirmPassword(e.target.value),
+                  required: true,
+                  disabled: loading
+                },
+                void 0,
+                false,
+                {
+                  fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+                  lineNumber: 177,
+                  columnNumber: 17
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(
+                "button",
+                {
+                  type: "button",
+                  className: "show-password-btn",
+                  onClick: toggleShowPassword,
+                  tabIndex: "-1",
+                  children: showPassword ? /* @__PURE__ */ jsxDEV(FaEyeSlash, {}, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+                    lineNumber: 192,
+                    columnNumber: 35
+                  }, this) : /* @__PURE__ */ jsxDEV(FaEye, {}, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+                    lineNumber: 192,
+                    columnNumber: 52
+                  }, this)
+                },
+                void 0,
+                false,
+                {
+                  fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+                  lineNumber: 186,
+                  columnNumber: 17
+                },
+                this
+              )
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+              lineNumber: 176,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+            lineNumber: 174,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              type: "submit",
+              className: "submit-button",
+              disabled: loading || !newPassword || !confirmPassword,
+              children: loading ? "RESETTING..." : "RESET PASSWORD"
+            },
+            void 0,
+            false,
+            {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+              lineNumber: 197,
+              columnNumber: 13
+            },
+            this
+          )
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+          lineNumber: 136,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "form-footer", children: [
+          /* @__PURE__ */ jsxDEV("div", { className: "footer-links", children: /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              type: "button",
+              className: "back-to-login-link",
+              onClick: () => navigate("/"),
+              children: "← Back to Login"
+            },
+            void 0,
+            false,
+            {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+              lineNumber: 208,
+              columnNumber: 15
+            },
+            this
+          ) }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+            lineNumber: 207,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV("p", { className: "footer-text", children: "ENTRANCE AND EXIT MONITORING SYSTEM" }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+            lineNumber: 216,
+            columnNumber: 13
+          }, this)
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+          lineNumber: 206,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+        lineNumber: 135,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+      lineNumber: 129,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx",
+    lineNumber: 122,
+    columnNumber: 5
+  }, this);
+}
+_s(ForgotPasswordStep2, "j7l4xB4er1nAeRFeXnp+iTVPE4w=", false, function() {
+  return [useLocation, useNavigate];
+});
+_c = ForgotPasswordStep2;
+var _c;
+$RefreshReg$(_c, "ForgotPasswordStep2");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/ForgotPass2.jsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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V0FBVTtBQUFBLGNBQ1YsVUFBVUUsV0FBVyxDQUFDTixlQUFlLENBQUNFO0FBQUFBLGNBRXJDSSxvQkFBVSxpQkFBaUI7QUFBQTtBQUFBLFlBTDlCO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxVQU1BO0FBQUEsYUFuRUY7QUFBQTtBQUFBO0FBQUE7QUFBQSxlQW9FQTtBQUFBLFFBRUEsdUJBQUMsU0FBSSxXQUFVLGVBQ2I7QUFBQSxpQ0FBQyxTQUFJLFdBQVUsZ0JBQ2I7QUFBQSxZQUFDO0FBQUE7QUFBQSxjQUNDLE1BQUs7QUFBQSxjQUNMLFdBQVU7QUFBQSxjQUNWLFNBQVMsTUFBTVYsU0FBUyxHQUFHO0FBQUEsY0FBRTtBQUFBO0FBQUEsWUFIL0I7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLFVBTUEsS0FQRjtBQUFBO0FBQUE7QUFBQTtBQUFBLGlCQVFBO0FBQUEsVUFDQSx1QkFBQyxPQUFFLFdBQVUsZUFBYyxtREFBM0I7QUFBQTtBQUFBO0FBQUE7QUFBQSxpQkFFQTtBQUFBLGFBWkY7QUFBQTtBQUFBO0FBQUE7QUFBQSxlQWFBO0FBQUEsV0FwRkY7QUFBQTtBQUFBO0FBQUE7QUFBQSxhQXFGQTtBQUFBLFNBM0ZGO0FBQUE7QUFBQTtBQUFBO0FBQUEsV0E0RkE7QUFBQSxPQW5HRjtBQUFBO0FBQUE7QUFBQTtBQUFBLFNBb0dBO0FBRUo7QUFBQ0YsR0F2TnVCRCxxQkFBbUI7QUFBQSxVQUN4QlAsYUFDQUMsV0FBVztBQUFBO0FBQUEsS0FGTk07QUFBbUIsSUFBQW9EO0FBQUEsYUFBQUEsSUFBQSIsIm5hbWVzIjpbInVzZVN0YXRlIiwidXNlTG9jYXRpb24iLCJ1c2VOYXZpZ2F0ZSIsImxvZ28iLCJMdVNjYW5GYWNlIiwiRmFFeWUiLCJGYUV5ZVNsYXNoIiwiU3dhbCIsIkZvcmdvdFBhc3N3b3JkU3RlcDIiLCJfcyIsImxvY2F0aW9uIiwibmF2aWdhdGUiLCJlbWFpbCIsImNvZGUiLCJzdGF0ZSIsIm5ld1Bhc3N3b3JkIiwic2V0TmV3UGFzc3dvcmQiLCJjb25maXJtUGFzc3dvcmQiLCJzZXRDb25maXJtUGFzc3dvcmQiLCJzaG93UGFzc3dvcmQiLCJzZXRTaG93UGFzc3dvcmQiLCJsb2FkaW5nIiwic2V0TG9hZGluZyIsInZhbGlkYXRlUGFzc3dvcmQiLCJwYXNzd29yZCIsImVycm9ycyIsImxlbmd0aCIsInB1c2giLCJ0ZXN0IiwiaXNWYWxpZCIsImhhbmRsZVJlc2V0UGFzc3dvcmQiLCJlIiwicHJldmVudERlZmF1bHQiLCJmaXJlIiwiaWNvbiIsInRpdGxlIiwidGV4dCIsInZhbGlkYXRpb24iLCJodG1sIiwiam9pbiIsImNvbmZpcm1CdXR0b25Db2xvciIsInJlc3BvbnNlIiwiZmV0Y2giLCJtZXRob2QiLCJoZWFkZXJzIiwiYm9keSIsIkpTT04iLCJzdHJpbmdpZnkiLCJkYXRhIiwianNvbiIsInN1Y2Nlc3MiLCJ0aW1lciIsInNob3dDb25maXJtQnV0dG9uIiwibWVzc2FnZSIsImVycm9yIiwidG9nZ2xlU2hvd1Bhc3N3b3JkIiwicHJldiIsImNvbG9yIiwidGFyZ2V0IiwidmFsdWUiLCJfYyJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJGb3Jnb3RQYXNzMi5qc3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tIFwicmVhY3RcIjtcclxuaW1wb3J0IHsgdXNlTG9jYXRpb24sIHVzZU5hdmlnYXRlIH0gZnJvbSBcInJlYWN0LXJvdXRlci1kb21cIjtcclxuaW1wb3J0IFwiLi4vY3NzL0ZvcmdvdFBhc3MuY3NzXCI7XHJcbmltcG9ydCBsb2dvIGZyb20gXCIuLi9hc3NldHMvbG9nbzIucG5nXCI7XHJcbmltcG9ydCB7IEx1U2NhbkZhY2UgfSBmcm9tIFwicmVhY3QtaWNvbnMvbHVcIjtcclxuaW1wb3J0IHsgRmFFeWUsIEZhRXllU2xhc2ggfSBmcm9tIFwicmVhY3QtaWNvbnMvZmFcIjtcclxuaW1wb3J0IFN3YWwgZnJvbSAnc3dlZXRhbGVydDInO1xyXG5cclxuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gRm9yZ290UGFzc3dvcmRTdGVwMigpIHtcclxuICBjb25zdCBsb2NhdGlvbiA9IHVzZUxvY2F0aW9uKCk7XHJcbiAgY29uc3QgbmF2aWdhdGUgPSB1c2VOYXZpZ2F0ZSgpO1xyXG4gIGNvbnN0IHsgZW1haWwsIGNvZGUgfSA9IGxvY2F0aW9uLnN0YXRlIHx8IHt9O1xyXG5cclxuICBjb25zdCBbbmV3UGFzc3dvcmQsIHNldE5ld1Bhc3N3b3JkXSA9IHVzZVN0YXRlKFwiXCIpO1xyXG4gIGNvbnN0IFtjb25maXJtUGFzc3dvcmQsIHNldENvbmZpcm1QYXNzd29yZF0gPSB1c2VTdGF0ZShcIlwiKTtcclxuICBjb25zdCBbc2hvd1Bhc3N3b3JkLCBzZXRTaG93UGFzc3dvcmRdID0gdXNlU3RhdGUoZmFsc2UpO1xyXG4gIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTtcclxuXHJcbiAgLy8gUGFzc3dvcmQgdmFsaWRhdGlvbiBmdW5jdGlvblxyXG4gIGNvbnN0IHZhbGlkYXRlUGFzc3dvcmQgPSAocGFzc3dvcmQpID0+IHtcclxuICAgIGNvbnN0IGVycm9ycyA9IFtdO1xyXG4gICAgXHJcbiAgICBpZiAocGFzc3dvcmQubGVuZ3RoIDwgOCkge1xyXG4gICAgICBlcnJvcnMucHVzaCgnYXQgbGVhc3QgOCBjaGFyYWN0ZXJzJyk7XHJcbiAgICB9XHJcbiAgICBpZiAoIS9bQS1aXS8udGVzdChwYXNzd29yZCkpIHtcclxuICAgICAgZXJyb3JzLnB1c2goJ29uZSB1cHBlcmNhc2UgbGV0dGVyJyk7XHJcbiAgICB9XHJcbiAgICBpZiAoIS9bYS16XS8udGVzdChwYXNzd29yZCkpIHtcclxuICAgICAgZXJyb3JzLnB1c2goJ29uZSBsb3dlcmNhc2UgbGV0dGVyJyk7XHJcbiAgICB9XHJcbiAgICBpZiAoIS9bMC05XS8udGVzdChwYXNzd29yZCkpIHtcclxuICAgICAgZXJyb3JzLnB1c2goJ29uZSBudW1iZXInKTtcclxuICAgIH1cclxuICAgIGlmICghL1tAJCElKj8mXS8udGVzdChwYXNzd29yZCkpIHtcclxuICAgICAgZXJyb3JzLnB1c2goJ29uZSBzcGVjaWFsIGNoYXJhY3RlciAoQCQhJSo/JiknKTtcclxuICAgIH1cclxuICAgIFxyXG4gICAgcmV0dXJuIHtcclxuICAgICAgaXNWYWxpZDogZXJyb3JzLmxlbmd0aCA9PT0gMCxcclxuICAgICAgZXJyb3JzOiBlcnJvcnNcclxuICAgIH07XHJcbiAgfTtcclxuXHJcbiAgY29uc3QgaGFuZGxlUmVzZXRQYXNzd29yZCA9IGFzeW5jIChlKSA9PiB7XHJcbiAgICBlLnByZXZlbnREZWZhdWx0KCk7XHJcblxyXG4gICAgLy8gQ2hlY2sgaWYgcGFzc3dvcmRzIG1hdGNoXHJcbiAgICBpZiAobmV3UGFzc3dvcmQgIT09IGNvbmZpcm1QYXNzd29yZCkge1xyXG4gICAgICBTd2FsLmZpcmUoe1xyXG4gICAgICAgIGljb246ICdlcnJvcicsXHJcbiAgICAgICAgdGl0bGU6ICdQYXNzd29yZCBNaXNtYXRjaCcsXHJcbiAgICAgICAgdGV4dDogJ1Bhc3N3b3JkcyBkbyBub3QgbWF0Y2ghJ1xyXG4gICAgICB9KTtcclxuICAgICAgcmV0dXJuO1xyXG4gICAgfVxyXG5cclxuICAgIC8vIFZhbGlkYXRlIHBhc3N3b3JkIHN0cmVuZ3RoXHJcbiAgICBjb25zdCB2YWxpZGF0aW9uID0gdmFsaWRhdGVQYXNzd29yZChuZXdQYXNzd29yZCk7XHJcbiAgICBpZiAoIXZhbGlkYXRpb24uaXNWYWxpZCkge1xyXG4gICAgICBTd2FsLmZpcmUoe1xyXG4gICAgICAgIGljb246ICdlcnJvcicsXHJcbiAgICAgICAgdGl0bGU6ICdXZWFrIFBhc3N3b3JkJyxcclxuICAgICAgICBodG1sOiBgUGFzc3dvcmQgbXVzdCBjb250YWluOjxicj7igKIgJHt2YWxpZGF0aW9uLmVycm9ycy5qb2luKCc8YnI+4oCiICcpfWAsXHJcbiAgICAgICAgY29uZmlybUJ1dHRvbkNvbG9yOiAnIzMwODVkNidcclxuICAgICAgfSk7XHJcbiAgICAgIHJldHVybjtcclxuICAgIH1cclxuXHJcbiAgICBzZXRMb2FkaW5nKHRydWUpO1xyXG5cclxuICAgIHRyeSB7XHJcbiAgICAgIGNvbnN0IHJlc3BvbnNlID0gYXdhaXQgZmV0Y2goJ2h0dHA6Ly9sb2NhbGhvc3Q6NTAwMC9hcGkvZm9yZ290LXBhc3N3b3JkL3Jlc2V0Jywge1xyXG4gICAgICAgIG1ldGhvZDogJ1BPU1QnLFxyXG4gICAgICAgIGhlYWRlcnM6IHtcclxuICAgICAgICAgICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbicsXHJcbiAgICAgICAgfSxcclxuICAgICAgICBib2R5OiBKU09OLnN0cmluZ2lmeSh7IFxyXG4gICAgICAgICAgZW1haWwsIFxyXG4gICAgICAgICAgY29kZSwgXHJcbiAgICAgICAgICBuZXdQYXNzd29yZCBcclxuICAgICAgICB9KVxyXG4gICAgICB9KTtcclxuXHJcbiAgICAgIGNvbnN0IGRhdGEgPSBhd2FpdCByZXNwb25zZS5qc29uKCk7XHJcblxyXG4gICAgICBpZiAoZGF0YS5zdWNjZXNzKSB7XHJcbiAgICAgICAgYXdhaXQgU3dhbC5maXJlKHtcclxuICAgICAgICAgIGljb246ICdzdWNjZXNzJyxcclxuICAgICAgICAgIHRpdGxlOiAnU3VjY2VzcyEnLFxyXG4gICAgICAgICAgdGV4dDogJ1lvdXIgcGFzc3dvcmQgaGFzIGJlZW4gcmVzZXQgc3VjY2Vzc2Z1bGx5JyxcclxuICAgICAgICAgIHRpbWVyOiAyMDAwLFxyXG4gICAgICAgICAgc2hvd0NvbmZpcm1CdXR0b246IGZhbHNlXHJcbiAgICAgICAgfSk7XHJcbiAgICAgICAgbmF2aWdhdGUoJy8nKTtcclxuICAgICAgfSBlbHNlIHtcclxuICAgICAgICBTd2FsLmZpcmUoe1xyXG4gICAgICAgICAgaWNvbjogJ2Vycm9yJyxcclxuICAgICAgICAgIHRpdGxlOiAnRXJyb3InLFxyXG4gICAgICAgICAgdGV4dDogZGF0YS5tZXNzYWdlXHJcbiAgICAgICAgfSk7XHJcbiAgICAgIH1cclxuICAgIH0gY2F0Y2ggKGVycm9yKSB7XHJcbiAgICAgIFN3YWwuZmlyZSh7XHJcbiAgICAgICAgaWNvbjogJ2Vycm9yJyxcclxuICAgICAgICB0aXRsZTogJ0Nvbm5lY3Rpb24gRXJyb3InLFxyXG4gICAgICAgIHRleHQ6ICdGYWlsZWQgdG8gcmVzZXQgcGFzc3dvcmQnXHJcbiAgICAgIH0pO1xyXG4gICAgfSBmaW5hbGx5IHtcclxuICAgICAgc2V0TG9hZGluZyhmYWxzZSk7XHJcbiAgICB9XHJcbiAgfTtcclxuXHJcbiAgY29uc3QgdG9nZ2xlU2hvd1Bhc3N3b3JkID0gKCkgPT4gc2V0U2hvd1Bhc3N3b3JkKChwcmV2KSA9PiAhcHJldik7XHJcblxyXG4gIGlmICghZW1haWwgfHwgIWNvZGUpIHtcclxuICAgIG5hdmlnYXRlKCcvZm9yZ290cGFzcycpO1xyXG4gICAgcmV0dXJuIG51bGw7XHJcbiAgfVxyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPGRpdiBjbGFzc05hbWU9XCJsb2dpbi1jb250YWluZXJcIj5cclxuICAgICAgPEx1U2NhbkZhY2VcclxuICAgICAgICB0aXRsZT1cIkdvIFRvIEVudHJ5LUV4aXQgU3R1ZGVudHNcIlxyXG4gICAgICAgIGNsYXNzTmFtZT1cInRvcC1sZWZ0LWljb25cIlxyXG4gICAgICAgIG9uQ2xpY2s9eygpID0+IG5hdmlnYXRlKFwiL2ZhY2VyZWNvZ1wiKX1cclxuICAgICAgLz5cclxuXHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwibG9naW4td3JhcHBlclwiPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibG9naW4taGVhZGVyLWNvbnRhaW5lclwiPlxyXG4gICAgICAgICAgPGltZyBzcmM9e2xvZ299IGFsdD1cIlN5c3RlbSBMb2dvXCIgY2xhc3NOYW1lPVwibG9naW4taWNvblwiIC8+XHJcbiAgICAgICAgICA8aDEgY2xhc3NOYW1lPVwibG9naW50ZXh0XCI+UkVTRVQgUEFTU1dPUkQ8L2gxPlxyXG4gICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImxvZ2luLWNhcmRcIj5cclxuICAgICAgICAgIDxmb3JtIGNsYXNzTmFtZT1cImxvZ2luLWZvcm1cIiBvblN1Ym1pdD17aGFuZGxlUmVzZXRQYXNzd29yZH0+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaW5wdXQtZ3JvdXBcIj5cclxuICAgICAgICAgICAgICA8bGFiZWwgaHRtbEZvcj1cImVtYWlsXCIgc3R5bGU9e3sgY29sb3I6ICd3aGl0ZScgfX0+RW1haWw8L2xhYmVsPlxyXG4gICAgICAgICAgICAgIDxpbnB1dFxyXG4gICAgICAgICAgICAgICAgaWQ9XCJlbWFpbFwiXHJcbiAgICAgICAgICAgICAgICB0eXBlPVwiZW1haWxcIlxyXG4gICAgICAgICAgICAgICAgdmFsdWU9e2VtYWlsfVxyXG4gICAgICAgICAgICAgICAgZGlzYWJsZWRcclxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cImRpc2FibGVkLWlucHV0XCJcclxuICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaW5wdXQtZ3JvdXBcIj5cclxuICAgICAgICAgICAgICA8bGFiZWwgaHRtbEZvcj1cIm5ld1Bhc3N3b3JkXCIgc3R5bGU9e3sgY29sb3I6ICd3aGl0ZScgfX0+TmV3IFBhc3N3b3JkPC9sYWJlbD5cclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInBhc3N3b3JkLWlucHV0LXdyYXBwZXJcIj5cclxuICAgICAgICAgICAgICAgIDxpbnB1dFxyXG4gICAgICAgICAgICAgICAgICBpZD1cIm5ld1Bhc3N3b3JkXCJcclxuICAgICAgICAgICAgICAgICAgdHlwZT17c2hvd1Bhc3N3b3JkID8gXCJ0ZXh0XCIgOiBcInBhc3N3b3JkXCJ9XHJcbiAgICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiRW50ZXIgbmV3IHBhc3N3b3JkXCJcclxuICAgICAgICAgICAgICAgICAgdmFsdWU9e25ld1Bhc3N3b3JkfVxyXG4gICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldE5ld1Bhc3N3b3JkKGUudGFyZ2V0LnZhbHVlKX1cclxuICAgICAgICAgICAgICAgICAgcmVxdWlyZWRcclxuICAgICAgICAgICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmd9XHJcbiAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgICAgICB0eXBlPVwiYnV0dG9uXCJcclxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwic2hvdy1wYXNzd29yZC1idG5cIlxyXG4gICAgICAgICAgICAgICAgICBvbkNsaWNrPXt0b2dnbGVTaG93UGFzc3dvcmR9XHJcbiAgICAgICAgICAgICAgICAgIHRhYkluZGV4PVwiLTFcIlxyXG4gICAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgICB7c2hvd1Bhc3N3b3JkID8gPEZhRXllU2xhc2ggLz4gOiA8RmFFeWUgLz59XHJcbiAgICAgICAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICA8c21hbGwgY2xhc3NOYW1lPVwicGFzc3dvcmQtaGludFwiPlxyXG4gICAgICAgICAgICAgICAgTXVzdCBjb250YWluOiA4KyBjaGFycywgdXBwZXJjYXNlLCBsb3dlcmNhc2UsIG51bWJlciwgYW5kIHNwZWNpYWwgY2hhciAoQCQhJSo/JilcclxuICAgICAgICAgICAgICA8L3NtYWxsPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaW5wdXQtZ3JvdXBcIj5cclxuICAgICAgICAgICAgICA8bGFiZWwgaHRtbEZvcj1cImNvbmZpcm1QYXNzd29yZFwiPkNvbmZpcm0gUGFzc3dvcmQ8L2xhYmVsPlxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicGFzc3dvcmQtaW5wdXQtd3JhcHBlclwiPlxyXG4gICAgICAgICAgICAgICAgPGlucHV0XHJcbiAgICAgICAgICAgICAgICAgIGlkPVwiY29uZmlybVBhc3N3b3JkXCJcclxuICAgICAgICAgICAgICAgICAgdHlwZT17c2hvd1Bhc3N3b3JkID8gXCJ0ZXh0XCIgOiBcInBhc3N3b3JkXCJ9XHJcbiAgICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiQ29uZmlybSBuZXcgcGFzc3dvcmRcIlxyXG4gICAgICAgICAgICAgICAgICB2YWx1ZT17Y29uZmlybVBhc3N3b3JkfVxyXG4gICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldENvbmZpcm1QYXNzd29yZChlLnRhcmdldC52YWx1ZSl9XHJcbiAgICAgICAgICAgICAgICAgIHJlcXVpcmVkXHJcbiAgICAgICAgICAgICAgICAgIGRpc2FibGVkPXtsb2FkaW5nfVxyXG4gICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgIDxidXR0b25cclxuICAgICAgICAgICAgICAgICAgdHlwZT1cImJ1dHRvblwiXHJcbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInNob3ctcGFzc3dvcmQtYnRuXCJcclxuICAgICAgICAgICAgICAgICAgb25DbGljaz17dG9nZ2xlU2hvd1Bhc3N3b3JkfVxyXG4gICAgICAgICAgICAgICAgICB0YWJJbmRleD1cIi0xXCJcclxuICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAge3Nob3dQYXNzd29yZCA/IDxGYUV5ZVNsYXNoIC8+IDogPEZhRXllIC8+fVxyXG4gICAgICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgPGJ1dHRvbiBcclxuICAgICAgICAgICAgICB0eXBlPVwic3VibWl0XCIgXHJcbiAgICAgICAgICAgICAgY2xhc3NOYW1lPVwic3VibWl0LWJ1dHRvblwiXHJcbiAgICAgICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmcgfHwgIW5ld1Bhc3N3b3JkIHx8ICFjb25maXJtUGFzc3dvcmR9XHJcbiAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICB7bG9hZGluZyA/ICdSRVNFVFRJTkcuLi4nIDogJ1JFU0VUIFBBU1NXT1JEJ31cclxuICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICA8L2Zvcm0+XHJcblxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmb3JtLWZvb3RlclwiPlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZvb3Rlci1saW5rc1wiPlxyXG4gICAgICAgICAgICAgIDxidXR0b24gXHJcbiAgICAgICAgICAgICAgICB0eXBlPVwiYnV0dG9uXCIgXHJcbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJiYWNrLXRvLWxvZ2luLWxpbmtcIlxyXG4gICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gbmF2aWdhdGUoJy8nKX1cclxuICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICDihpAgQmFjayB0byBMb2dpblxyXG4gICAgICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwiZm9vdGVyLXRleHRcIj5cclxuICAgICAgICAgICAgICBFTlRSQU5DRSBBTkQgRVhJVCBNT05JVE9SSU5HIFNZU1RFTVxyXG4gICAgICAgICAgICA8L3A+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9kaXY+XHJcbiAgICA8L2Rpdj5cclxuICApO1xyXG59Il0sImZpbGUiOiJEOi9TbWFydC1FbnRyYW5jZS1FeGl0LWFuZC1BdHRlbmRhbmNlLU1vbml0b3JpbmctU3lzdGVtL21vZHVsZTEvcGxwLXN0dWRlbnQtbW9uaXRvcmluZy9zcmMvcGFnZXMvRm9yZ290UGFzczIuanN4In0=
