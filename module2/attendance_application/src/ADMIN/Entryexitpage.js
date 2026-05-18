@@ -168,7 +168,7 @@ function EntryExitPage() {
     } finally {
       setExporting(false);
     }
-  };
+  }; //sdgsd
 
   // ===============================
   // LOAD DATA FROM DATABASE
