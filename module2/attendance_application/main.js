@@ -20,17 +20,42 @@ function createWindow() {
     },
   });
 
-  // Inject polyfill BEFORE page loads
+  // Inject polyfills BEFORE page loads
+  win.webContents.session.webRequest.onBeforeRequest({urls: ['*']}, (details, callback) => {
+    callback({});
+  });
+
   win.webContents.on('did-start-loading', async () => {
-    await win.webContents.executeJavaScript(`
-      // Direct require from Electron
-      const { TextEncoder, TextDecoder } = require('util');
-      global.TextEncoder = TextEncoder;
-      global.TextDecoder = TextDecoder;
-      window.TextEncoder = TextEncoder;
-      window.TextDecoder = TextDecoder;
-      console.log('Polyfills injected!');
-    `);
+    try {
+      await win.webContents.executeJavaScript(`
+        // Direct require from Electron
+        const { TextEncoder, TextDecoder } = require('util');
+        
+        // Set globally BEFORE any modules load
+        if (!global.TextEncoder) {
+          global.TextEncoder = TextEncoder;
+          global.TextDecoder = TextDecoder;
+        }
+        if (!window.TextEncoder) {
+          window.TextEncoder = TextEncoder;
+          window.TextDecoder = TextDecoder;
+        }
+        
+        // Also make util.TextEncoder work for TensorFlow
+        if (typeof require !== 'undefined') {
+          const util = require('util');
+          util.TextEncoder = TextEncoder;
+          util.TextDecoder = TextDecoder;
+        }
+        
+        console.log('Polyfills injected successfully!', {
+          hasGlobalEncoder: !!global.TextEncoder,
+          hasWindowEncoder: !!window.TextEncoder
+        });
+      `);
+    } catch (e) {
+      console.error('Failed to inject polyfills:', e);
+    }
   });
 
   win.loadURL('http://localhost:3000');
