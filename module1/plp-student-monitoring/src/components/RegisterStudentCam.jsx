@@ -239,7 +239,7 @@ function RegisterStudentCam({
 
         const expectedPose = captureSteps[captureStep]?.icon ?? "center";
 
-        const res = await fetch("http://localhost:5000/api/validate-frame", {
+        const res = await fetch("http://192.168.0.10:5000/api/validate-frame", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({ image: base64, expected_pose: expectedPose }),

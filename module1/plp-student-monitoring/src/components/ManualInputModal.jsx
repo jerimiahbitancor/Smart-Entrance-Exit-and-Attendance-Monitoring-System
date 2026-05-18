@@ -47,7 +47,7 @@ function ManualInputModal({ onClose, mode = 'ENTRY' }) {
     setLoading(true);
     setStatus(null);
     try {
-      const res = await fetch('http://localhost:5000/api/manualentry', {
+      const res = await fetch('http://192.168.0.10:5000/api/manualentry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

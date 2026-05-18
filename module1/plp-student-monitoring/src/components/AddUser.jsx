@@ -135,7 +135,7 @@ function AddUser({ onClose, onUserAdded }) {
         }
       });
 
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch('http://192.168.0.10:5000/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
