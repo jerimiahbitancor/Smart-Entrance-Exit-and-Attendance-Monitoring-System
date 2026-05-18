@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Form, Button, Table, Modal } from 'react-bootstrap';
-import { getEntryExitLogs, getAttendance, getEmployees, getEvents } from '../api';
+import { getEntryExitLogs, getAttendance, getEmployees, getEvents, getDepartments } from '../api';
 import './ccs/entryexit.css';
 
 function EntryExitPage() {
@@ -13,8 +13,11 @@ function EntryExitPage() {
   const [dateMM, setDateMM] = useState('');
   const [dateYYYY, setDateYYYY] = useState('');
   const [loading, setLoading] = useState(false);
+  const [backgroundLoading, setBackgroundLoading] = useState(false);
   const [error, setError] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const [dbDeptLogos, setDbDeptLogos] = useState({});
+  const [includePasigLogos, setIncludePasigLogos] = useState(true);
 
   // Custom Alert Modal States
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -68,10 +71,13 @@ function EntryExitPage() {
     try {
       await ensurePdfLibs();
 
-      const [pasigLogoB64, pasigWordmarkB64, plpLogoB64] = await Promise.all([
-        loadImageAsBase64('/Pasig_Logo.PNG'),
-        loadImageAsBase64('/Pasig_Wordmark.PNG'),
+      const collegeLogo = (activeFilterCat === 'dept') ? (dbDeptLogos[activeFilterVal] || '') : '';
+
+      const [pasigLogoB64, pasigWordmarkB64, plpLogoB64, collegeLogoB64] = await Promise.all([
+        includePasigLogos ? loadImageAsBase64('/Pasig_Logo.PNG') : Promise.resolve(''),
+        includePasigLogos ? loadImageAsBase64('/Pasig_Wordmark.PNG') : Promise.resolve(''),
         plpLogo ? loadImageAsBase64(plpLogo) : Promise.resolve(''),
+        collegeLogo ? loadImageAsBase64(collegeLogo) : Promise.resolve(''),
       ]);
 
       const rowsHtml = filteredLogs.map((log, i) => `
@@ -110,6 +116,7 @@ function EntryExitPage() {
           <div class="logo-area">
             ${pasigLogoB64 ? `<img src="${pasigLogoB64}" />` : ''}
             ${plpLogoB64 ? `<img src="${plpLogoB64}" />` : ''}
+            ${collegeLogoB64 ? `<img src="${collegeLogoB64}" />` : ''}
           </div>
           <div class="header-info">
             <div class="header-title">Entrance & Exit Logs Report</div>
@@ -168,29 +175,58 @@ function EntryExitPage() {
   // ===============================
 
   useEffect(() => {
-    loadLogs();
-    // Auto-refresh logs every 5 seconds for "live" updates
-    const interval = setInterval(loadLogs, 5000);
-    return () => clearInterval(interval);
+    // Initial full load with spinner
+    loadLogs(false);
+
+    // Setup BroadcastChannel for cross-tab "dynamic" refresh
+    const channel = new BroadcastChannel('attendance_updates');
+    channel.onmessage = (event) => {
+      if (event.data === 'new_log_detected') {
+        console.log('📢 Log detected via BroadcastChannel. Refreshing table...');
+        loadLogs(true); // Silent refresh
+      }
+    };
+
+    // Backup polling (silent) every 10 seconds in case BroadcastChannel fails or for cross-machine sync
+    const interval = setInterval(() => {
+      loadLogs(true); // Silent refresh
+    }, 10000);
+
+    return () => {
+      channel.close();
+      clearInterval(interval);
+    };
   }, []);
 
-  const loadLogs = async () => {
+  const loadLogs = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
+      if (silent) setBackgroundLoading(true);
       setError(null);
       
       // Fetch all required data sources to fill missing fields
-      const [eeData, attendanceData, employeesData, eventsData] = await Promise.all([
+      const [eeData, attendanceData, employeesData, eventsData, departmentsData] = await Promise.all([
         getEntryExitLogs(),
         getAttendance(),
         getEmployees(),
-        getEvents()
+        getEvents(),
+        getDepartments()
       ]);
 
       const rawEE = Array.isArray(eeData) ? eeData : [];
       const rawAttendance = Array.isArray(attendanceData) ? attendanceData : (attendanceData?.data ?? []);
       const allEmployees = Array.isArray(employeesData) ? employeesData : (employeesData?.data ?? []);
       const allEvents = Array.isArray(eventsData) ? eventsData : (eventsData?.data ?? []);
+      const allDepts = Array.isArray(departmentsData) ? departmentsData : [];
+
+      // Map department names to their logos
+      const logoMap = {};
+      allDepts.forEach(d => {
+        if (d.dept_name && d.logo) {
+          logoMap[d.dept_name] = d.logo;
+        }
+      });
+      setDbDeptLogos(logoMap);
 
       // Normalize all logs into a single format
       const normalizedLogs = [
@@ -208,7 +244,7 @@ function EntryExitPage() {
             timestamp: att.time_in || att.time_out || att.timestamp || '',
             type: att.time_out && att.time_out !== '0000-00-00 00:00:00' ? 'Exit' : 'Entry',
             employee_code: att.employee_code || emp?.employee_code || '',
-            fullName: att.fullName || (emp ? `${emp.employee_firstName} ${emp.employee_LastName}` : 'Unknown'),
+            fullName: att.fullName || (emp ? `${emp.employee_LastName}, ${emp.employee_firstName}` : 'Unknown'),
             department_name: att.department_name || emp?.department_name || '',
             location: att.location_name || evt?.location_name || att.event_name || 'Event',
             method: att.method || 'face'
@@ -221,12 +257,18 @@ function EntryExitPage() {
         .filter(log => log.timestamp && log.timestamp !== '0000-00-00 00:00:00')
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-      setLogs(uniqueLogs);
+      // Only update state if data changed to prevent unnecessary re-renders
+      setLogs(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(uniqueLogs)) return prev;
+        return uniqueLogs;
+      });
+
     } catch (err) {
       console.error('Failed to load logs:', err);
       setError(err.message || 'Failed to load logs.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+      if (silent) setBackgroundLoading(false);
     }
   };
 
@@ -273,6 +315,11 @@ function EntryExitPage() {
     ...new Set(logs.map(log => log.department_name).filter(Boolean))
   ];
 
+  const availableDates = [
+    'All Dates',
+    ...new Set(logs.map(log => log.timestamp ? log.timestamp.split(' ')[0] : null).filter(Boolean).sort().reverse())
+  ];
+
   const getTypeBadgeClass = (type) =>
     (type === 'Entry' || type === 'Check In' || type?.toLowerCase()?.includes('in')) ? 'badge-entry' : 'badge-exit';
 
@@ -298,23 +345,34 @@ function EntryExitPage() {
 
       <div className="page-header-section d-flex justify-content-between align-items-center">
         <h1 className="page-title">Entrance & Exit Logs</h1>
-        <Button 
-          variant="outline-primary" 
-          onClick={handleExportLog}
-          disabled={exporting}
-          className="d-flex align-items-center gap-2"
-          style={{ 
-            backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-            borderColor: 'rgba(255, 255, 255, 0.5)',
-            color: 'white',
-            fontWeight: '600',
-            borderRadius: '10px',
-            padding: '10px 20px'
-          }}
-        >
-          <i className="bi bi-file-earmark-pdf"></i>
-          {exporting ? 'Exporting...' : 'Generate Report PDF'}
-        </Button>
+        <div className="d-flex align-items-center gap-3">
+          <Form.Check 
+            type="switch"
+            id="include-logos-switch"
+            label="Include Pasig Logos"
+            checked={includePasigLogos}
+            onChange={(e) => setIncludePasigLogos(e.target.checked)}
+            className="text-white fw-bold"
+            style={{ fontSize: '14px' }}
+          />
+          <Button 
+            variant="outline-primary" 
+            onClick={handleExportLog}
+            disabled={exporting}
+            className="d-flex align-items-center gap-2"
+            style={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+              borderColor: 'rgba(255, 255, 255, 0.5)',
+              color: 'white',
+              fontWeight: '600',
+              borderRadius: '10px',
+              padding: '10px 20px'
+            }}
+          >
+            <i className="bi bi-file-earmark-pdf"></i>
+            {exporting ? 'Exporting...' : 'Generate Report PDF'}
+          </Button>
+        </div>
       </div>
 
       {/* ================= STATS ================= */}

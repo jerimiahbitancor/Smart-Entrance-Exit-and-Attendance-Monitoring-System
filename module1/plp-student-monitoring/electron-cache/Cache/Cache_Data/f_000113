@@ -1,0 +1,689 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/AddUser.jsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=f2d246ea"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$();
+import __vite__cjsImport1_react from "/node_modules/.vite/deps/react.js?v=f2d246ea"; const React = __vite__cjsImport1_react.__esModule ? __vite__cjsImport1_react.default : __vite__cjsImport1_react; const useState = __vite__cjsImport1_react["useState"];
+import { MdClose, MdVisibility, MdVisibilityOff } from "/node_modules/.vite/deps/react-icons_md.js?v=ada0787c";
+import "/src/componentscss/AddUser.css";
+import "/src/css/GlobalModal.css";
+import Swal from "/node_modules/.vite/deps/sweetalert2.js?v=1b208f3f";
+function AddUser({ onClose, onUserAdded }) {
+  _s();
+  const [lastName, setLastName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [extension, setExtension] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const toUpperCase = (str) => {
+    return str.toUpperCase();
+  };
+  const handleLastNameChange = (e) => {
+    setLastName(toUpperCase(e.target.value));
+  };
+  const handleFirstNameChange = (e) => {
+    setFirstName(toUpperCase(e.target.value));
+  };
+  const handleMiddleNameChange = (e) => {
+    setMiddleName(toUpperCase(e.target.value));
+  };
+  const handleExtensionChange = (e) => {
+    setExtension(toUpperCase(e.target.value));
+  };
+  const validateForm = () => {
+    if (!lastName || !firstName || !email || !role || !password || !confirmPassword) {
+      Swal.fire({
+        icon: "warning",
+        title: "Validation Error",
+        text: "Please fill in all required fields",
+        confirmButtonColor: "#3085d6"
+      });
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid Email",
+        text: "Please enter a valid email address",
+        confirmButtonColor: "#3085d6"
+      });
+      return false;
+    }
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      Swal.fire({
+        icon: "warning",
+        title: "Weak Password",
+        text: "Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character",
+        confirmButtonColor: "#3085d6"
+      });
+      return false;
+    }
+    if (password !== confirmPassword) {
+      Swal.fire({
+        icon: "warning",
+        title: "Password Mismatch",
+        text: "Passwords do not match",
+        confirmButtonColor: "#3085d6"
+      });
+      return false;
+    }
+    return true;
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+    const result = await Swal.fire({
+      title: "Confirm Add User",
+      text: "Are you sure you want to add this user?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, add it!",
+      cancelButtonText: "Cancel"
+    });
+    if (!result.isConfirmed) {
+      return;
+    }
+    setLoading(true);
+    const newUser = {
+      lastName,
+      firstName,
+      middleName,
+      extension,
+      email,
+      role,
+      password
+    };
+    try {
+      Swal.fire({
+        title: "Creating User...",
+        text: "Please wait",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      const response = await fetch("http://localhost:5000/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(newUser)
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create user");
+      }
+      Swal.close();
+      await Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "User has been created successfully.",
+        timer: 2e3,
+        showConfirmButton: false
+      });
+      onUserAdded(data);
+      onClose();
+    } catch (err) {
+      console.error("Error creating user:", err);
+      Swal.close();
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: err.message || "Failed to create user. Please try again.",
+        confirmButtonColor: "#3085d6"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleCancel = () => {
+    if (lastName || firstName || email || role || password || confirmPassword || extension) {
+      Swal.fire({
+        title: "Discard Changes?",
+        text: "You have unsaved changes. Are you sure you want to close?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, discard",
+        cancelButtonText: "Stay"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          onClose();
+        }
+      });
+    } else {
+      onClose();
+    }
+  };
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+  return /* @__PURE__ */ jsxDEV("div", { className: "modal-overlay", onClick: handleCancel, children: /* @__PURE__ */ jsxDEV("div", { className: "modal-container", onClick: (e) => e.stopPropagation(), children: [
+    /* @__PURE__ */ jsxDEV("div", { className: "modal-header", children: [
+      /* @__PURE__ */ jsxDEV("h2", { className: "modal-title", children: "ADD USER" }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+        lineNumber: 215,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("button", { className: "modal-close", onClick: handleCancel, children: "✕" }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+        lineNumber: 216,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+      lineNumber: 214,
+      columnNumber: 9
+    }, this),
+    /* @__PURE__ */ jsxDEV("form", { onSubmit: handleSubmit, children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "modal-body", children: [
+        /* @__PURE__ */ jsxDEV("div", { style: { fontSize: "0.85rem", color: "#666", marginBottom: "20px" }, children: "* Required fields (All letters will be UPPERCASE)" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+          lineNumber: 221,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "modal-grid-2", children: [
+          /* @__PURE__ */ jsxDEV("div", { className: "modal-field", children: [
+            /* @__PURE__ */ jsxDEV("label", { className: "modal-label", children: [
+              "Last Name ",
+              /* @__PURE__ */ jsxDEV("span", { className: "required", children: "*" }, void 0, false, {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 228,
+                columnNumber: 58
+              }, this)
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 228,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV(
+              "input",
+              {
+                className: "modal-input",
+                type: "text",
+                placeholder: "e.g. DELA CRUZ",
+                value: lastName,
+                onChange: handleLastNameChange,
+                style: { textTransform: "uppercase" },
+                required: true
+              },
+              void 0,
+              false,
+              {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 229,
+                columnNumber: 17
+              },
+              this
+            )
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 227,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "modal-field", children: [
+            /* @__PURE__ */ jsxDEV("label", { className: "modal-label", children: [
+              "Email ",
+              /* @__PURE__ */ jsxDEV("span", { className: "required", children: "*" }, void 0, false, {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 241,
+                columnNumber: 54
+              }, this)
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 241,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV(
+              "input",
+              {
+                className: "modal-input",
+                type: "email",
+                placeholder: "e.g juandelacruz@plpasig.edu.ph",
+                value: email,
+                onChange: (e) => setEmail(e.target.value),
+                style: { textTransform: "lowercase" },
+                required: true
+              },
+              void 0,
+              false,
+              {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 242,
+                columnNumber: 17
+              },
+              this
+            )
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 240,
+            columnNumber: 15
+          }, this)
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+          lineNumber: 226,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "modal-grid-2", children: [
+          /* @__PURE__ */ jsxDEV("div", { className: "modal-field", children: [
+            /* @__PURE__ */ jsxDEV("label", { className: "modal-label", children: [
+              "First Name ",
+              /* @__PURE__ */ jsxDEV("span", { className: "required", children: "*" }, void 0, false, {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 257,
+                columnNumber: 59
+              }, this)
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 257,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV(
+              "input",
+              {
+                className: "modal-input",
+                type: "text",
+                placeholder: "e.g JUAN",
+                value: firstName,
+                onChange: handleFirstNameChange,
+                style: { textTransform: "uppercase" },
+                required: true
+              },
+              void 0,
+              false,
+              {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 258,
+                columnNumber: 17
+              },
+              this
+            )
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 256,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "modal-field", children: [
+            /* @__PURE__ */ jsxDEV("label", { className: "modal-label", children: [
+              "Role ",
+              /* @__PURE__ */ jsxDEV("span", { className: "required", children: "*" }, void 0, false, {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 270,
+                columnNumber: 53
+              }, this)
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 270,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV(
+              "select",
+              {
+                className: "modal-select",
+                value: role,
+                onChange: (e) => setRole(e.target.value),
+                required: true,
+                children: [
+                  /* @__PURE__ */ jsxDEV("option", { value: "", children: "Select Role" }, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                    lineNumber: 277,
+                    columnNumber: 19
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("option", { value: "EEMS Admin", children: "EEMS Admin" }, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                    lineNumber: 278,
+                    columnNumber: 19
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("option", { value: "EAMS Admin", children: "EAMS Admin" }, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                    lineNumber: 279,
+                    columnNumber: 19
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("option", { value: "Super Admin", children: "Super Admin" }, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                    lineNumber: 280,
+                    columnNumber: 19
+                  }, this)
+                ]
+              },
+              void 0,
+              true,
+              {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 271,
+                columnNumber: 17
+              },
+              this
+            )
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 269,
+            columnNumber: 15
+          }, this)
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+          lineNumber: 255,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "modal-grid-2", children: [
+          /* @__PURE__ */ jsxDEV("div", { className: "modal-field", children: [
+            /* @__PURE__ */ jsxDEV("label", { className: "modal-label", children: "Middle Name" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 288,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV(
+              "input",
+              {
+                className: "modal-input",
+                type: "text",
+                placeholder: "e.g. SMITH",
+                value: middleName,
+                onChange: handleMiddleNameChange,
+                style: { textTransform: "uppercase" }
+              },
+              void 0,
+              false,
+              {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 289,
+                columnNumber: 17
+              },
+              this
+            )
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 287,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "modal-field", children: [
+            /* @__PURE__ */ jsxDEV("label", { className: "modal-label", children: "Extension" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 300,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV(
+              "input",
+              {
+                className: "modal-input",
+                type: "text",
+                placeholder: "e.g. JR., SR., III",
+                value: extension,
+                onChange: handleExtensionChange,
+                style: { textTransform: "uppercase" }
+              },
+              void 0,
+              false,
+              {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 301,
+                columnNumber: 17
+              },
+              this
+            )
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 299,
+            columnNumber: 15
+          }, this)
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+          lineNumber: 286,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "modal-grid-2", children: [
+          /* @__PURE__ */ jsxDEV("div", { className: "modal-field", children: [
+            /* @__PURE__ */ jsxDEV("label", { className: "modal-label", children: [
+              "Password ",
+              /* @__PURE__ */ jsxDEV("span", { className: "required", children: "*" }, void 0, false, {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 315,
+                columnNumber: 57
+              }, this)
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 315,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { style: { position: "relative" }, children: [
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  className: "modal-input",
+                  type: showPassword ? "text" : "password",
+                  placeholder: "Enter password",
+                  value: password,
+                  onChange: (e) => setPassword(e.target.value),
+                  required: true
+                },
+                void 0,
+                false,
+                {
+                  fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                  lineNumber: 317,
+                  columnNumber: 19
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(
+                "button",
+                {
+                  type: "button",
+                  className: "password-toggle-btn",
+                  onClick: togglePasswordVisibility,
+                  tabIndex: "-1",
+                  children: showPassword ? /* @__PURE__ */ jsxDEV(MdVisibilityOff, {}, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                    lineNumber: 331,
+                    columnNumber: 37
+                  }, this) : /* @__PURE__ */ jsxDEV(MdVisibility, {}, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                    lineNumber: 331,
+                    columnNumber: 59
+                  }, this)
+                },
+                void 0,
+                false,
+                {
+                  fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                  lineNumber: 325,
+                  columnNumber: 19
+                },
+                this
+              )
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 316,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV("small", { style: { fontSize: "0.75rem", color: "#999", marginTop: "4px", display: "block" }, children: "8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 special" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 334,
+              columnNumber: 17
+            }, this)
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 314,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "modal-field", children: [
+            /* @__PURE__ */ jsxDEV("label", { className: "modal-label", children: [
+              "Confirm Password ",
+              /* @__PURE__ */ jsxDEV("span", { className: "required", children: "*" }, void 0, false, {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                lineNumber: 340,
+                columnNumber: 65
+              }, this)
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 340,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { style: { position: "relative" }, children: [
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  className: "modal-input",
+                  type: showConfirmPassword ? "text" : "password",
+                  placeholder: "Confirm password",
+                  value: confirmPassword,
+                  onChange: (e) => setConfirmPassword(e.target.value),
+                  required: true
+                },
+                void 0,
+                false,
+                {
+                  fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                  lineNumber: 342,
+                  columnNumber: 19
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(
+                "button",
+                {
+                  type: "button",
+                  className: "password-toggle-btn",
+                  onClick: toggleConfirmPasswordVisibility,
+                  tabIndex: "-1",
+                  children: showConfirmPassword ? /* @__PURE__ */ jsxDEV(MdVisibilityOff, {}, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                    lineNumber: 356,
+                    columnNumber: 44
+                  }, this) : /* @__PURE__ */ jsxDEV(MdVisibility, {}, void 0, false, {
+                    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                    lineNumber: 356,
+                    columnNumber: 66
+                  }, this)
+                },
+                void 0,
+                false,
+                {
+                  fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+                  lineNumber: 350,
+                  columnNumber: 19
+                },
+                this
+              )
+            ] }, void 0, true, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+              lineNumber: 341,
+              columnNumber: 17
+            }, this)
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 339,
+            columnNumber: 15
+          }, this)
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+          lineNumber: 313,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+        lineNumber: 220,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "modal-footer", children: [
+        /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            type: "button",
+            className: "modal-btn modal-btn-cancel",
+            onClick: handleCancel,
+            disabled: loading,
+            children: "Cancel"
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 364,
+            columnNumber: 13
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            type: "submit",
+            className: "modal-btn modal-btn-save",
+            disabled: loading,
+            children: loading ? "Adding..." : "Add User"
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+            lineNumber: 372,
+            columnNumber: 13
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+        lineNumber: 363,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+      lineNumber: 219,
+      columnNumber: 9
+    }, this)
+  ] }, void 0, true, {
+    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+    lineNumber: 213,
+    columnNumber: 7
+  }, this) }, void 0, false, {
+    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx",
+    lineNumber: 212,
+    columnNumber: 5
+  }, this);
+}
+_s(AddUser, "+/VjS3w1t7ukyeZX84uC6LANItU=");
+_c = AddUser;
+export default AddUser;
+var _c;
+$RefreshReg$(_c, "AddUser");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/components/AddUser.jsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QSxZQUNWLFVBQVVBO0FBQUFBLFlBRVRBLG9CQUFVLGNBQWM7QUFBQTtBQUFBLFVBTDNCO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxRQU1BO0FBQUEsV0FmRjtBQUFBO0FBQUE7QUFBQTtBQUFBLGFBZ0JBO0FBQUEsU0FoS0Y7QUFBQTtBQUFBO0FBQUE7QUFBQSxXQWlLQTtBQUFBLE9BdktGO0FBQUE7QUFBQTtBQUFBO0FBQUEsU0F3S0EsS0F6S0Y7QUFBQTtBQUFBO0FBQUE7QUFBQSxTQTBLQTtBQUVKO0FBQUNyQixHQXpYUUgsU0FBTztBQUFBLEtBQVBBO0FBMlhULGVBQWVBO0FBQVEsSUFBQXdGO0FBQUEsYUFBQUEsSUFBQSIsIm5hbWVzIjpbIlJlYWN0IiwidXNlU3RhdGUiLCJNZENsb3NlIiwiTWRWaXNpYmlsaXR5IiwiTWRWaXNpYmlsaXR5T2ZmIiwiU3dhbCIsIkFkZFVzZXIiLCJvbkNsb3NlIiwib25Vc2VyQWRkZWQiLCJfcyIsImxhc3ROYW1lIiwic2V0TGFzdE5hbWUiLCJmaXJzdE5hbWUiLCJzZXRGaXJzdE5hbWUiLCJtaWRkbGVOYW1lIiwic2V0TWlkZGxlTmFtZSIsImV4dGVuc2lvbiIsInNldEV4dGVuc2lvbiIsImVtYWlsIiwic2V0RW1haWwiLCJyb2xlIiwic2V0Um9sZSIsInBhc3N3b3JkIiwic2V0UGFzc3dvcmQiLCJjb25maXJtUGFzc3dvcmQiLCJzZXRDb25maXJtUGFzc3dvcmQiLCJzaG93UGFzc3dvcmQiLCJzZXRTaG93UGFzc3dvcmQiLCJzaG93Q29uZmlybVBhc3N3b3JkIiwic2V0U2hvd0NvbmZpcm1QYXNzd29yZCIsImxvYWRpbmciLCJzZXRMb2FkaW5nIiwidG9VcHBlckNhc2UiLCJzdHIiLCJoYW5kbGVMYXN0TmFtZUNoYW5nZSIsImUiLCJ0YXJnZXQiLCJ2YWx1ZSIsImhhbmRsZUZpcnN0TmFtZUNoYW5nZSIsImhhbmRsZU1pZGRsZU5hbWVDaGFuZ2UiLCJoYW5kbGVFeHRlbnNpb25DaGFuZ2UiLCJ2YWxpZGF0ZUZvcm0iLCJmaXJlIiwiaWNvbiIsInRpdGxlIiwidGV4dCIsImNvbmZpcm1CdXR0b25Db2xvciIsImVtYWlsUmVnZXgiLCJ0ZXN0IiwicGFzc3dvcmRSZWdleCIsImhhbmRsZVN1Ym1pdCIsInByZXZlbnREZWZhdWx0IiwicmVzdWx0Iiwic2hvd0NhbmNlbEJ1dHRvbiIsImNhbmNlbEJ1dHRvbkNvbG9yIiwiY29uZmlybUJ1dHRvblRleHQiLCJjYW5jZWxCdXR0b25UZXh0IiwiaXNDb25maXJtZWQiLCJuZXdVc2VyIiwiYWxsb3dPdXRzaWRlQ2xpY2siLCJhbGxvd0VzY2FwZUtleSIsImFsbG93RW50ZXJLZXkiLCJzaG93Q29uZmlybUJ1dHRvbiIsImRpZE9wZW4iLCJzaG93TG9hZGluZyIsInJlc3BvbnNlIiwiZmV0Y2giLCJtZXRob2QiLCJoZWFkZXJzIiwiYm9keSIsIkpTT04iLCJzdHJpbmdpZnkiLCJkYXRhIiwianNvbiIsIm9rIiwiRXJyb3IiLCJlcnJvciIsImNsb3NlIiwidGltZXIiLCJlcnIiLCJjb25zb2xlIiwibWVzc2FnZSIsImhhbmRsZUNhbmNlbCIsInRoZW4iLCJ0b2dnbGVQYXNzd29yZFZpc2liaWxpdHkiLCJ0b2dnbGVDb25maXJtUGFzc3dvcmRWaXNpYmlsaXR5Iiwic3RvcFByb3BhZ2F0aW9uIiwiZm9udFNpemUiLCJjb2xvciIsIm1hcmdpbkJvdHRvbSIsInRleHRUcmFuc2Zvcm0iLCJwb3NpdGlvbiIsIm1hcmdpblRvcCIsImRpc3BsYXkiLCJfYyJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJBZGRVc2VyLmpzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgUmVhY3QsIHsgdXNlU3RhdGUgfSBmcm9tIFwicmVhY3RcIjtcclxuaW1wb3J0IHsgTWRDbG9zZSwgTWRWaXNpYmlsaXR5LCBNZFZpc2liaWxpdHlPZmYgfSBmcm9tIFwicmVhY3QtaWNvbnMvbWRcIjtcclxuaW1wb3J0IFwiLi4vY29tcG9uZW50c2Nzcy9BZGRVc2VyLmNzc1wiO1xyXG5pbXBvcnQgXCIuLi9jc3MvR2xvYmFsTW9kYWwuY3NzXCI7XHJcbmltcG9ydCBTd2FsIGZyb20gJ3N3ZWV0YWxlcnQyJztcclxuXHJcbmZ1bmN0aW9uIEFkZFVzZXIoeyBvbkNsb3NlLCBvblVzZXJBZGRlZCB9KSB7XHJcbiAgY29uc3QgW2xhc3ROYW1lLCBzZXRMYXN0TmFtZV0gPSB1c2VTdGF0ZShcIlwiKTtcclxuICBjb25zdCBbZmlyc3ROYW1lLCBzZXRGaXJzdE5hbWVdID0gdXNlU3RhdGUoXCJcIik7XHJcbiAgY29uc3QgW21pZGRsZU5hbWUsIHNldE1pZGRsZU5hbWVdID0gdXNlU3RhdGUoXCJcIik7XHJcbiAgY29uc3QgW2V4dGVuc2lvbiwgc2V0RXh0ZW5zaW9uXSA9IHVzZVN0YXRlKFwiXCIpO1xyXG4gIGNvbnN0IFtlbWFpbCwgc2V0RW1haWxdID0gdXNlU3RhdGUoXCJcIik7XHJcbiAgY29uc3QgW3JvbGUsIHNldFJvbGVdID0gdXNlU3RhdGUoXCJcIik7XHJcbiAgY29uc3QgW3Bhc3N3b3JkLCBzZXRQYXNzd29yZF0gPSB1c2VTdGF0ZShcIlwiKTtcclxuICBjb25zdCBbY29uZmlybVBhc3N3b3JkLCBzZXRDb25maXJtUGFzc3dvcmRdID0gdXNlU3RhdGUoXCJcIik7XHJcbiAgY29uc3QgW3Nob3dQYXNzd29yZCwgc2V0U2hvd1Bhc3N3b3JkXSA9IHVzZVN0YXRlKGZhbHNlKTtcclxuICBjb25zdCBbc2hvd0NvbmZpcm1QYXNzd29yZCwgc2V0U2hvd0NvbmZpcm1QYXNzd29yZF0gPSB1c2VTdGF0ZShmYWxzZSk7XHJcbiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUoZmFsc2UpO1xyXG5cclxuICAvLyBDb252ZXJ0IHRvIFVQUEVSQ0FTRVxyXG4gIGNvbnN0IHRvVXBwZXJDYXNlID0gKHN0cikgPT4ge1xyXG4gICAgcmV0dXJuIHN0ci50b1VwcGVyQ2FzZSgpO1xyXG4gIH07XHJcblxyXG4gIGNvbnN0IGhhbmRsZUxhc3ROYW1lQ2hhbmdlID0gKGUpID0+IHtcclxuICAgIHNldExhc3ROYW1lKHRvVXBwZXJDYXNlKGUudGFyZ2V0LnZhbHVlKSk7XHJcbiAgfTtcclxuXHJcbiAgY29uc3QgaGFuZGxlRmlyc3ROYW1lQ2hhbmdlID0gKGUpID0+IHtcclxuICAgIHNldEZpcnN0TmFtZSh0b1VwcGVyQ2FzZShlLnRhcmdldC52YWx1ZSkpO1xyXG4gIH07XHJcblxyXG4gIGNvbnN0IGhhbmRsZU1pZGRsZU5hbWVDaGFuZ2UgPSAoZSkgPT4ge1xyXG4gICAgc2V0TWlkZGxlTmFtZSh0b1VwcGVyQ2FzZShlLnRhcmdldC52YWx1ZSkpO1xyXG4gIH07XHJcblxyXG4gIGNvbnN0IGhhbmRsZUV4dGVuc2lvbkNoYW5nZSA9IChlKSA9PiB7XHJcbiAgICBzZXRFeHRlbnNpb24odG9VcHBlckNhc2UoZS50YXJnZXQudmFsdWUpKTtcclxuICB9O1xyXG5cclxuICBjb25zdCB2YWxpZGF0ZUZvcm0gPSAoKSA9PiB7XHJcbiAgICBpZiAoIWxhc3ROYW1lIHx8ICFmaXJzdE5hbWUgfHwgIWVtYWlsIHx8ICFyb2xlIHx8ICFwYXNzd29yZCB8fCAhY29uZmlybVBhc3N3b3JkKSB7XHJcbiAgICAgIFN3YWwuZmlyZSh7XHJcbiAgICAgICAgaWNvbjogJ3dhcm5pbmcnLFxyXG4gICAgICAgIHRpdGxlOiAnVmFsaWRhdGlvbiBFcnJvcicsXHJcbiAgICAgICAgdGV4dDogJ1BsZWFzZSBmaWxsIGluIGFsbCByZXF1aXJlZCBmaWVsZHMnLFxyXG4gICAgICAgIGNvbmZpcm1CdXR0b25Db2xvcjogJyMzMDg1ZDYnXHJcbiAgICAgIH0pO1xyXG4gICAgICByZXR1cm4gZmFsc2U7XHJcbiAgICB9XHJcblxyXG4gICAgLy8gVmFsaWRhdGUgZW1haWwgZm9ybWF0XHJcbiAgICBjb25zdCBlbWFpbFJlZ2V4ID0gL15bXlxcc0BdK0BbXlxcc0BdK1xcLlteXFxzQF0rJC87XHJcbiAgICBpZiAoIWVtYWlsUmVnZXgudGVzdChlbWFpbCkpIHtcclxuICAgICAgU3dhbC5maXJlKHtcclxuICAgICAgICBpY29uOiAnd2FybmluZycsXHJcbiAgICAgICAgdGl0bGU6ICdJbnZhbGlkIEVtYWlsJyxcclxuICAgICAgICB0ZXh0OiAnUGxlYXNlIGVudGVyIGEgdmFsaWQgZW1haWwgYWRkcmVzcycsXHJcbiAgICAgICAgY29uZmlybUJ1dHRvbkNvbG9yOiAnIzMwODVkNidcclxuICAgICAgfSk7XHJcbiAgICAgIHJldHVybiBmYWxzZTtcclxuICAgIH1cclxuXHJcbiAgICAvLyBWYWxpZGF0ZSBwYXNzd29yZCBzdHJlbmd0aFxyXG4gICAgY29uc3QgcGFzc3dvcmRSZWdleCA9IC9eKD89LipbYS16XSkoPz0uKltBLVpdKSg/PS4qXFxkKSg/PS4qW0AkISUqPyZdKVtBLVphLXpcXGRAJCElKj8mXXs4LH0kLztcclxuICAgIGlmICghcGFzc3dvcmRSZWdleC50ZXN0KHBhc3N3b3JkKSkge1xyXG4gICAgICBTd2FsLmZpcmUoe1xyXG4gICAgICAgIGljb246ICd3YXJuaW5nJyxcclxuICAgICAgICB0aXRsZTogJ1dlYWsgUGFzc3dvcmQnLFxyXG4gICAgICAgIHRleHQ6ICdQYXNzd29yZCBtdXN0IGNvbnRhaW4gYXQgbGVhc3QgOCBjaGFyYWN0ZXJzLCBvbmUgdXBwZXJjYXNlLCBvbmUgbG93ZXJjYXNlLCBvbmUgbnVtYmVyIGFuZCBvbmUgc3BlY2lhbCBjaGFyYWN0ZXInLFxyXG4gICAgICAgIGNvbmZpcm1CdXR0b25Db2xvcjogJyMzMDg1ZDYnXHJcbiAgICAgIH0pO1xyXG4gICAgICByZXR1cm4gZmFsc2U7XHJcbiAgICB9XHJcblxyXG4gICAgLy8gQ2hlY2sgaWYgcGFzc3dvcmRzIG1hdGNoXHJcbiAgICBpZiAocGFzc3dvcmQgIT09IGNvbmZpcm1QYXNzd29yZCkge1xyXG4gICAgICBTd2FsLmZpcmUoe1xyXG4gICAgICAgIGljb246ICd3YXJuaW5nJyxcclxuICAgICAgICB0aXRsZTogJ1Bhc3N3b3JkIE1pc21hdGNoJyxcclxuICAgICAgICB0ZXh0OiAnUGFzc3dvcmRzIGRvIG5vdCBtYXRjaCcsXHJcbiAgICAgICAgY29uZmlybUJ1dHRvbkNvbG9yOiAnIzMwODVkNidcclxuICAgICAgfSk7XHJcbiAgICAgIHJldHVybiBmYWxzZTtcclxuICAgIH1cclxuXHJcbiAgICByZXR1cm4gdHJ1ZTtcclxuICB9O1xyXG5cclxuICBjb25zdCBoYW5kbGVTdWJtaXQgPSBhc3luYyAoZSkgPT4ge1xyXG4gICAgZS5wcmV2ZW50RGVmYXVsdCgpO1xyXG4gICAgXHJcbiAgICBpZiAoIXZhbGlkYXRlRm9ybSgpKSB7XHJcbiAgICAgIHJldHVybjtcclxuICAgIH1cclxuXHJcbiAgICAvLyBTaG93IGNvbmZpcm1hdGlvbiBkaWFsb2dcclxuICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IFN3YWwuZmlyZSh7XHJcbiAgICAgIHRpdGxlOiAnQ29uZmlybSBBZGQgVXNlcicsXHJcbiAgICAgIHRleHQ6ICdBcmUgeW91IHN1cmUgeW91IHdhbnQgdG8gYWRkIHRoaXMgdXNlcj8nLFxyXG4gICAgICBpY29uOiAncXVlc3Rpb24nLFxyXG4gICAgICBzaG93Q2FuY2VsQnV0dG9uOiB0cnVlLFxyXG4gICAgICBjb25maXJtQnV0dG9uQ29sb3I6ICcjMzA4NWQ2JyxcclxuICAgICAgY2FuY2VsQnV0dG9uQ29sb3I6ICcjZDMzJyxcclxuICAgICAgY29uZmlybUJ1dHRvblRleHQ6ICdZZXMsIGFkZCBpdCEnLFxyXG4gICAgICBjYW5jZWxCdXR0b25UZXh0OiAnQ2FuY2VsJ1xyXG4gICAgfSk7XHJcblxyXG4gICAgaWYgKCFyZXN1bHQuaXNDb25maXJtZWQpIHtcclxuICAgICAgcmV0dXJuO1xyXG4gICAgfVxyXG5cclxuICAgIHNldExvYWRpbmcodHJ1ZSk7XHJcblxyXG4gICAgY29uc3QgbmV3VXNlciA9IHtcclxuICAgICAgbGFzdE5hbWUsXHJcbiAgICAgIGZpcnN0TmFtZSxcclxuICAgICAgbWlkZGxlTmFtZSxcclxuICAgICAgZXh0ZW5zaW9uLFxyXG4gICAgICBlbWFpbCxcclxuICAgICAgcm9sZSxcclxuICAgICAgcGFzc3dvcmRcclxuICAgIH07XHJcblxyXG4gICAgdHJ5IHtcclxuICAgICAgU3dhbC5maXJlKHtcclxuICAgICAgICB0aXRsZTogJ0NyZWF0aW5nIFVzZXIuLi4nLFxyXG4gICAgICAgIHRleHQ6ICdQbGVhc2Ugd2FpdCcsXHJcbiAgICAgICAgYWxsb3dPdXRzaWRlQ2xpY2s6IGZhbHNlLFxyXG4gICAgICAgIGFsbG93RXNjYXBlS2V5OiBmYWxzZSxcclxuICAgICAgICBhbGxvd0VudGVyS2V5OiBmYWxzZSxcclxuICAgICAgICBzaG93Q29uZmlybUJ1dHRvbjogZmFsc2UsXHJcbiAgICAgICAgZGlkT3BlbjogKCkgPT4ge1xyXG4gICAgICAgICAgU3dhbC5zaG93TG9hZGluZygpO1xyXG4gICAgICAgIH1cclxuICAgICAgfSk7XHJcblxyXG4gICAgICBjb25zdCByZXNwb25zZSA9IGF3YWl0IGZldGNoKCdodHRwOi8vbG9jYWxob3N0OjUwMDAvYXBpL3VzZXJzJywge1xyXG4gICAgICAgIG1ldGhvZDogJ1BPU1QnLFxyXG4gICAgICAgIGhlYWRlcnM6IHtcclxuICAgICAgICAgICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbicsXHJcbiAgICAgICAgfSxcclxuICAgICAgICBib2R5OiBKU09OLnN0cmluZ2lmeShuZXdVc2VyKSxcclxuICAgICAgfSk7XHJcblxyXG4gICAgICBjb25zdCBkYXRhID0gYXdhaXQgcmVzcG9uc2UuanNvbigpO1xyXG5cclxuICAgICAgaWYgKCFyZXNwb25zZS5vaykge1xyXG4gICAgICAgIHRocm93IG5ldyBFcnJvcihkYXRhLmVycm9yIHx8ICdGYWlsZWQgdG8gY3JlYXRlIHVzZXInKTtcclxuICAgICAgfVxyXG5cclxuICAgICAgU3dhbC5jbG9zZSgpO1xyXG5cclxuICAgICAgLy8gU2luZ2xlIHN1Y2Nlc3MgbWVzc2FnZVxyXG4gICAgICBhd2FpdCBTd2FsLmZpcmUoe1xyXG4gICAgICAgIGljb246ICdzdWNjZXNzJyxcclxuICAgICAgICB0aXRsZTogJ1N1Y2Nlc3MhJyxcclxuICAgICAgICB0ZXh0OiAnVXNlciBoYXMgYmVlbiBjcmVhdGVkIHN1Y2Nlc3NmdWxseS4nLFxyXG4gICAgICAgIHRpbWVyOiAyMDAwLFxyXG4gICAgICAgIHNob3dDb25maXJtQnV0dG9uOiBmYWxzZVxyXG4gICAgICB9KTtcclxuXHJcbiAgICAgIG9uVXNlckFkZGVkKGRhdGEpO1xyXG4gICAgICBvbkNsb3NlKCk7XHJcbiAgICAgIFxyXG4gICAgfSBjYXRjaCAoZXJyKSB7XHJcbiAgICAgIGNvbnNvbGUuZXJyb3IoJ0Vycm9yIGNyZWF0aW5nIHVzZXI6JywgZXJyKTtcclxuICAgICAgXHJcbiAgICAgIFN3YWwuY2xvc2UoKTtcclxuICAgICAgXHJcbiAgICAgIFN3YWwuZmlyZSh7XHJcbiAgICAgICAgaWNvbjogJ2Vycm9yJyxcclxuICAgICAgICB0aXRsZTogJ0Vycm9yIScsXHJcbiAgICAgICAgdGV4dDogZXJyLm1lc3NhZ2UgfHwgJ0ZhaWxlZCB0byBjcmVhdGUgdXNlci4gUGxlYXNlIHRyeSBhZ2Fpbi4nLFxyXG4gICAgICAgIGNvbmZpcm1CdXR0b25Db2xvcjogJyMzMDg1ZDYnXHJcbiAgICAgIH0pO1xyXG4gICAgfSBmaW5hbGx5IHtcclxuICAgICAgc2V0TG9hZGluZyhmYWxzZSk7XHJcbiAgICB9XHJcbiAgfTtcclxuXHJcbiAgY29uc3QgaGFuZGxlQ2FuY2VsID0gKCkgPT4ge1xyXG4gICAgaWYgKGxhc3ROYW1lIHx8IGZpcnN0TmFtZSB8fCBlbWFpbCB8fCByb2xlIHx8IHBhc3N3b3JkIHx8IGNvbmZpcm1QYXNzd29yZCB8fCBleHRlbnNpb24pIHtcclxuICAgICAgU3dhbC5maXJlKHtcclxuICAgICAgICB0aXRsZTogJ0Rpc2NhcmQgQ2hhbmdlcz8nLFxyXG4gICAgICAgIHRleHQ6ICdZb3UgaGF2ZSB1bnNhdmVkIGNoYW5nZXMuIEFyZSB5b3Ugc3VyZSB5b3Ugd2FudCB0byBjbG9zZT8nLFxyXG4gICAgICAgIGljb246ICd3YXJuaW5nJyxcclxuICAgICAgICBzaG93Q2FuY2VsQnV0dG9uOiB0cnVlLFxyXG4gICAgICAgIGNvbmZpcm1CdXR0b25Db2xvcjogJyNkMzMnLFxyXG4gICAgICAgIGNhbmNlbEJ1dHRvbkNvbG9yOiAnIzMwODVkNicsXHJcbiAgICAgICAgY29uZmlybUJ1dHRvblRleHQ6ICdZZXMsIGRpc2NhcmQnLFxyXG4gICAgICAgIGNhbmNlbEJ1dHRvblRleHQ6ICdTdGF5J1xyXG4gICAgICB9KS50aGVuKChyZXN1bHQpID0+IHtcclxuICAgICAgICBpZiAocmVzdWx0LmlzQ29uZmlybWVkKSB7XHJcbiAgICAgICAgICBvbkNsb3NlKCk7XHJcbiAgICAgICAgfVxyXG4gICAgICB9KTtcclxuICAgIH0gZWxzZSB7XHJcbiAgICAgIG9uQ2xvc2UoKTtcclxuICAgIH1cclxuICB9O1xyXG5cclxuICBjb25zdCB0b2dnbGVQYXNzd29yZFZpc2liaWxpdHkgPSAoKSA9PiB7XHJcbiAgICBzZXRTaG93UGFzc3dvcmQoIXNob3dQYXNzd29yZCk7XHJcbiAgfTtcclxuXHJcbiAgY29uc3QgdG9nZ2xlQ29uZmlybVBhc3N3b3JkVmlzaWJpbGl0eSA9ICgpID0+IHtcclxuICAgIHNldFNob3dDb25maXJtUGFzc3dvcmQoIXNob3dDb25maXJtUGFzc3dvcmQpO1xyXG4gIH07XHJcblxyXG4gIHJldHVybiAoXHJcbiAgICA8ZGl2IGNsYXNzTmFtZT1cIm1vZGFsLW92ZXJsYXlcIiBvbkNsaWNrPXtoYW5kbGVDYW5jZWx9PlxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1vZGFsLWNvbnRhaW5lclwiIG9uQ2xpY2s9eyhlKSA9PiBlLnN0b3BQcm9wYWdhdGlvbigpfT5cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1vZGFsLWhlYWRlclwiPlxyXG4gICAgICAgICAgPGgyIGNsYXNzTmFtZT1cIm1vZGFsLXRpdGxlXCI+QUREIFVTRVI8L2gyPlxyXG4gICAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9XCJtb2RhbC1jbG9zZVwiIG9uQ2xpY2s9e2hhbmRsZUNhbmNlbH0+4pyVPC9idXR0b24+XHJcbiAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgIDxmb3JtIG9uU3VibWl0PXtoYW5kbGVTdWJtaXR9PlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtb2RhbC1ib2R5XCI+XHJcbiAgICAgICAgICAgIDxkaXYgc3R5bGU9e3sgZm9udFNpemU6ICcwLjg1cmVtJywgY29sb3I6ICcjNjY2JywgbWFyZ2luQm90dG9tOiAnMjBweCcgfX0+XHJcbiAgICAgICAgICAgICAgKiBSZXF1aXJlZCBmaWVsZHMgKEFsbCBsZXR0ZXJzIHdpbGwgYmUgVVBQRVJDQVNFKVxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgIHsvKiBST1cgMSAqL31cclxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtb2RhbC1ncmlkLTJcIj5cclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1vZGFsLWZpZWxkXCI+XHJcbiAgICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwibW9kYWwtbGFiZWxcIj5MYXN0IE5hbWUgPHNwYW4gY2xhc3NOYW1lPVwicmVxdWlyZWRcIj4qPC9zcGFuPjwvbGFiZWw+XHJcbiAgICAgICAgICAgICAgICA8aW5wdXRcclxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibW9kYWwtaW5wdXRcIlxyXG4gICAgICAgICAgICAgICAgICB0eXBlPVwidGV4dFwiXHJcbiAgICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiZS5nLiBERUxBIENSVVpcIlxyXG4gICAgICAgICAgICAgICAgICB2YWx1ZT17bGFzdE5hbWV9XHJcbiAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXtoYW5kbGVMYXN0TmFtZUNoYW5nZX1cclxuICAgICAgICAgICAgICAgICAgc3R5bGU9e3sgdGV4dFRyYW5zZm9ybTogJ3VwcGVyY2FzZScgfX1cclxuICAgICAgICAgICAgICAgICAgcmVxdWlyZWRcclxuICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibW9kYWwtZmllbGRcIj5cclxuICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJtb2RhbC1sYWJlbFwiPkVtYWlsIDxzcGFuIGNsYXNzTmFtZT1cInJlcXVpcmVkXCI+Kjwvc3Bhbj48L2xhYmVsPlxyXG4gICAgICAgICAgICAgICAgPGlucHV0XHJcbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cIm1vZGFsLWlucHV0XCJcclxuICAgICAgICAgICAgICAgICAgdHlwZT1cImVtYWlsXCJcclxuICAgICAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9XCJlLmcganVhbmRlbGFjcnV6QHBscGFzaWcuZWR1LnBoXCJcclxuICAgICAgICAgICAgICAgICAgdmFsdWU9e2VtYWlsfVxyXG4gICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldEVtYWlsKGUudGFyZ2V0LnZhbHVlKX1cclxuICAgICAgICAgICAgICAgICAgc3R5bGU9e3sgdGV4dFRyYW5zZm9ybTogJ2xvd2VyY2FzZScgfX1cclxuICAgICAgICAgICAgICAgICAgcmVxdWlyZWRcclxuICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgey8qIFJPVyAyICovfVxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1vZGFsLWdyaWQtMlwiPlxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibW9kYWwtZmllbGRcIj5cclxuICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJtb2RhbC1sYWJlbFwiPkZpcnN0IE5hbWUgPHNwYW4gY2xhc3NOYW1lPVwicmVxdWlyZWRcIj4qPC9zcGFuPjwvbGFiZWw+XHJcbiAgICAgICAgICAgICAgICA8aW5wdXRcclxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibW9kYWwtaW5wdXRcIlxyXG4gICAgICAgICAgICAgICAgICB0eXBlPVwidGV4dFwiXHJcbiAgICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiZS5nIEpVQU5cIlxyXG4gICAgICAgICAgICAgICAgICB2YWx1ZT17Zmlyc3ROYW1lfVxyXG4gICAgICAgICAgICAgICAgICBvbkNoYW5nZT17aGFuZGxlRmlyc3ROYW1lQ2hhbmdlfVxyXG4gICAgICAgICAgICAgICAgICBzdHlsZT17eyB0ZXh0VHJhbnNmb3JtOiAndXBwZXJjYXNlJyB9fVxyXG4gICAgICAgICAgICAgICAgICByZXF1aXJlZFxyXG4gICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtb2RhbC1maWVsZFwiPlxyXG4gICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT1cIm1vZGFsLWxhYmVsXCI+Um9sZSA8c3BhbiBjbGFzc05hbWU9XCJyZXF1aXJlZFwiPio8L3NwYW4+PC9sYWJlbD5cclxuICAgICAgICAgICAgICAgIDxzZWxlY3RcclxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibW9kYWwtc2VsZWN0XCJcclxuICAgICAgICAgICAgICAgICAgdmFsdWU9e3JvbGV9XHJcbiAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0Um9sZShlLnRhcmdldC52YWx1ZSl9XHJcbiAgICAgICAgICAgICAgICAgIHJlcXVpcmVkXHJcbiAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9XCJcIj5TZWxlY3QgUm9sZTwvb3B0aW9uPlxyXG4gICAgICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPVwiRUVNUyBBZG1pblwiPkVFTVMgQWRtaW48L29wdGlvbj5cclxuICAgICAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT1cIkVBTVMgQWRtaW5cIj5FQU1TIEFkbWluPC9vcHRpb24+XHJcbiAgICAgICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9XCJTdXBlciBBZG1pblwiPlN1cGVyIEFkbWluPC9vcHRpb24+XHJcbiAgICAgICAgICAgICAgICA8L3NlbGVjdD5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICB7LyogUk9XIDMgKi99XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibW9kYWwtZ3JpZC0yXCI+XHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtb2RhbC1maWVsZFwiPlxyXG4gICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT1cIm1vZGFsLWxhYmVsXCI+TWlkZGxlIE5hbWU8L2xhYmVsPlxyXG4gICAgICAgICAgICAgICAgPGlucHV0XHJcbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cIm1vZGFsLWlucHV0XCJcclxuICAgICAgICAgICAgICAgICAgdHlwZT1cInRleHRcIlxyXG4gICAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj1cImUuZy4gU01JVEhcIlxyXG4gICAgICAgICAgICAgICAgICB2YWx1ZT17bWlkZGxlTmFtZX1cclxuICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2hhbmRsZU1pZGRsZU5hbWVDaGFuZ2V9XHJcbiAgICAgICAgICAgICAgICAgIHN0eWxlPXt7IHRleHRUcmFuc2Zvcm06ICd1cHBlcmNhc2UnIH19XHJcbiAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1vZGFsLWZpZWxkXCI+XHJcbiAgICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwibW9kYWwtbGFiZWxcIj5FeHRlbnNpb248L2xhYmVsPlxyXG4gICAgICAgICAgICAgICAgPGlucHV0XHJcbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cIm1vZGFsLWlucHV0XCJcclxuICAgICAgICAgICAgICAgICAgdHlwZT1cInRleHRcIlxyXG4gICAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj1cImUuZy4gSlIuLCBTUi4sIElJSVwiXHJcbiAgICAgICAgICAgICAgICAgIHZhbHVlPXtleHRlbnNpb259XHJcbiAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXtoYW5kbGVFeHRlbnNpb25DaGFuZ2V9XHJcbiAgICAgICAgICAgICAgICAgIHN0eWxlPXt7IHRleHRUcmFuc2Zvcm06ICd1cHBlcmNhc2UnIH19XHJcbiAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgIHsvKiBQYXNzd29yZCBmaWVsZHMgKi99XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibW9kYWwtZ3JpZC0yXCI+XHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtb2RhbC1maWVsZFwiPlxyXG4gICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT1cIm1vZGFsLWxhYmVsXCI+UGFzc3dvcmQgPHNwYW4gY2xhc3NOYW1lPVwicmVxdWlyZWRcIj4qPC9zcGFuPjwvbGFiZWw+XHJcbiAgICAgICAgICAgICAgICA8ZGl2IHN0eWxlPXt7IHBvc2l0aW9uOiAncmVsYXRpdmUnIH19PlxyXG4gICAgICAgICAgICAgICAgICA8aW5wdXRcclxuICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJtb2RhbC1pbnB1dFwiXHJcbiAgICAgICAgICAgICAgICAgICAgdHlwZT17c2hvd1Bhc3N3b3JkID8gXCJ0ZXh0XCIgOiBcInBhc3N3b3JkXCJ9XHJcbiAgICAgICAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9XCJFbnRlciBwYXNzd29yZFwiXHJcbiAgICAgICAgICAgICAgICAgICAgdmFsdWU9e3Bhc3N3b3JkfVxyXG4gICAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0UGFzc3dvcmQoZS50YXJnZXQudmFsdWUpfVxyXG4gICAgICAgICAgICAgICAgICAgIHJlcXVpcmVkXHJcbiAgICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgICAgIDxidXR0b24gXHJcbiAgICAgICAgICAgICAgICAgICAgdHlwZT1cImJ1dHRvblwiXHJcbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwicGFzc3dvcmQtdG9nZ2xlLWJ0blwiXHJcbiAgICAgICAgICAgICAgICAgICAgb25DbGljaz17dG9nZ2xlUGFzc3dvcmRWaXNpYmlsaXR5fVxyXG4gICAgICAgICAgICAgICAgICAgIHRhYkluZGV4PVwiLTFcIlxyXG4gICAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgICAge3Nob3dQYXNzd29yZCA/IDxNZFZpc2liaWxpdHlPZmYgLz4gOiA8TWRWaXNpYmlsaXR5IC8+fVxyXG4gICAgICAgICAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgPHNtYWxsIHN0eWxlPXt7IGZvbnRTaXplOiAnMC43NXJlbScsIGNvbG9yOiAnIzk5OScsIG1hcmdpblRvcDogJzRweCcsIGRpc3BsYXk6ICdibG9jaycgfX0+XHJcbiAgICAgICAgICAgICAgICAgIDgrIGNoYXJzLCAxIHVwcGVyY2FzZSwgMSBsb3dlcmNhc2UsIDEgbnVtYmVyLCAxIHNwZWNpYWxcclxuICAgICAgICAgICAgICAgIDwvc21hbGw+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibW9kYWwtZmllbGRcIj5cclxuICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJtb2RhbC1sYWJlbFwiPkNvbmZpcm0gUGFzc3dvcmQgPHNwYW4gY2xhc3NOYW1lPVwicmVxdWlyZWRcIj4qPC9zcGFuPjwvbGFiZWw+XHJcbiAgICAgICAgICAgICAgICA8ZGl2IHN0eWxlPXt7IHBvc2l0aW9uOiAncmVsYXRpdmUnIH19PlxyXG4gICAgICAgICAgICAgICAgICA8aW5wdXRcclxuICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJtb2RhbC1pbnB1dFwiXHJcbiAgICAgICAgICAgICAgICAgICAgdHlwZT17c2hvd0NvbmZpcm1QYXNzd29yZCA/IFwidGV4dFwiIDogXCJwYXNzd29yZFwifVxyXG4gICAgICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiQ29uZmlybSBwYXNzd29yZFwiXHJcbiAgICAgICAgICAgICAgICAgICAgdmFsdWU9e2NvbmZpcm1QYXNzd29yZH1cclxuICAgICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldENvbmZpcm1QYXNzd29yZChlLnRhcmdldC52YWx1ZSl9XHJcbiAgICAgICAgICAgICAgICAgICAgcmVxdWlyZWRcclxuICAgICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgICAgPGJ1dHRvbiBcclxuICAgICAgICAgICAgICAgICAgICB0eXBlPVwiYnV0dG9uXCJcclxuICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJwYXNzd29yZC10b2dnbGUtYnRuXCJcclxuICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXt0b2dnbGVDb25maXJtUGFzc3dvcmRWaXNpYmlsaXR5fVxyXG4gICAgICAgICAgICAgICAgICAgIHRhYkluZGV4PVwiLTFcIlxyXG4gICAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgICAge3Nob3dDb25maXJtUGFzc3dvcmQgPyA8TWRWaXNpYmlsaXR5T2ZmIC8+IDogPE1kVmlzaWJpbGl0eSAvPn1cclxuICAgICAgICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1vZGFsLWZvb3RlclwiPlxyXG4gICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgdHlwZT1cImJ1dHRvblwiXHJcbiAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibW9kYWwtYnRuIG1vZGFsLWJ0bi1jYW5jZWxcIlxyXG4gICAgICAgICAgICAgIG9uQ2xpY2s9e2hhbmRsZUNhbmNlbH1cclxuICAgICAgICAgICAgICBkaXNhYmxlZD17bG9hZGluZ31cclxuICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgIENhbmNlbFxyXG4gICAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgIHR5cGU9XCJzdWJtaXRcIlxyXG4gICAgICAgICAgICAgIGNsYXNzTmFtZT1cIm1vZGFsLWJ0biBtb2RhbC1idG4tc2F2ZVwiXHJcbiAgICAgICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmd9XHJcbiAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICB7bG9hZGluZyA/ICdBZGRpbmcuLi4nIDogJ0FkZCBVc2VyJ31cclxuICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L2Zvcm0+XHJcbiAgICAgIDwvZGl2PlxyXG4gICAgPC9kaXY+XHJcbiAgKTtcclxufVxyXG5cclxuZXhwb3J0IGRlZmF1bHQgQWRkVXNlcjsiXSwiZmlsZSI6IkQ6L1NtYXJ0LUVudHJhbmNlLUV4aXQtYW5kLUF0dGVuZGFuY2UtTW9uaXRvcmluZy1TeXN0ZW0vbW9kdWxlMS9wbHAtc3R1ZGVudC1tb25pdG9yaW5nL3NyYy9jb21wb25lbnRzL0FkZFVzZXIuanN4In0=

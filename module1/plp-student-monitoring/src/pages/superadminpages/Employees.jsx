@@ -71,6 +71,8 @@ function EmployeesPage() {
   const [showCaptureConfirm, setShowCaptureConfirm] = useState(false);
   const [currentCapturingSlot, setCurrentCapturingSlot] = useState(null); // which slot we're filling now
   const [isCapturingSequence, setIsCapturingSequence] = useState(false);
+  const [countdown, setCountdown] = useState(null);
+  const countdownIntervalRef = useRef(null);
   const lastDetectionTimeRef = useRef(0);
   const DETECTION_INTERVAL = 120; // ms (≈ 8 FPS)   
   
@@ -118,40 +120,54 @@ const runDetectionLoop = async () => {
     detectionLoopRef.current = requestAnimationFrame(runDetectionLoop);
     return;
   }
-  if (!videoRef.current || videoRef.current.readyState < 2) {
-    // ── AUTO CAPTURE LOGIC ──
-    if (isCapturingSequence && allAutoReqsMet && currentCapturingSlot !== null) {
 
-      // Prevent multiple triggers
-      if (!isAutoCapturingRef.current && !autoCaptureTimeoutRef.current) {
+  // Handle countdown logic inside the loop for high precision
+  if (isCapturingSequence && allAutoReqsMet && currentCapturingSlot !== null) {
+    if (!autoCaptureTimeoutRef.current && !isAutoCapturingRef.current) {
+      setCountdown(3);
+      
+      let secondsLeft = 3;
+      countdownIntervalRef.current = setInterval(() => {
+        secondsLeft -= 1;
+        if (secondsLeft >= 0) {
+          setCountdown(secondsLeft);
+        } else {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
+      }, 1000);
 
-        // Wait ~1 second for stability
-        autoCaptureTimeoutRef.current = setTimeout(() => {
-
-          // Double check still valid
-          if (allAutoReqsMet) {
-            isAutoCapturingRef.current = true;
-
-            doCapture();
-
-            // Reset flags after short delay
-            setTimeout(() => {
-              isAutoCapturingRef.current = false;
-            }, 800);
-          }
-
-          autoCaptureTimeoutRef.current = null;
-
-        }, 1000); // ← stability delay (adjust if needed)
-      }
-
-    } else {
-      // Cancel if user moves or invalid
-      if (autoCaptureTimeoutRef.current) {
-        clearTimeout(autoCaptureTimeoutRef.current);
+      autoCaptureTimeoutRef.current = setTimeout(() => {
+        if (allAutoReqsMet) {
+          isAutoCapturingRef.current = true;
+          setCountdown(null);
+          doCapture();
+          setTimeout(() => {
+            isAutoCapturingRef.current = false;
+          }, 800);
+        }
         autoCaptureTimeoutRef.current = null;
-      }
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
+      }, 3000);
     }
+  } else {
+    if (autoCaptureTimeoutRef.current) {
+      clearTimeout(autoCaptureTimeoutRef.current);
+      autoCaptureTimeoutRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    if (countdown !== null) {
+      setCountdown(null);
+    }
+  }
+
+  if (!videoRef.current || videoRef.current.readyState < 2) {
     detectionLoopRef.current = requestAnimationFrame(runDetectionLoop);
     return;
   }
@@ -433,27 +449,6 @@ try {
   // };
 
   const handleSlotRemove = (index) => {
-    const slot = imageSlots[index];
-
-    // If this is an existing photo (from database) and we're editing
-    if (isEditing && slot && slot.photo_ID) {
-      // Optional: Ask for confirmation before deleting from DB
-      if (!window.confirm(`Delete this photo permanently?`)) {
-        return;
-      }
-
-      // Call backend to delete this specific photo
-      deleteEmployeePhoto(slot.photo_ID)
-        .then(() => {
-          console.log(`Photo ${slot.photo_ID} deleted from database`);
-        })
-        .catch(err => {
-          console.error("Failed to delete photo from DB:", err);
-          // Still remove from UI even if DB delete fails (to avoid stuck UI)
-        });
-    }
-
-    // Remove from local state
     setImageSlots(prev => {
       const updated = [...prev];
       updated[index] = null;
@@ -649,26 +644,26 @@ const closeCamera = () => {
         employeeId = result?.employee_ID || result?.id || result?.insertId;
       }
 
-      // Always send the current state of imageSlots to the backend.
-      // Backend will delete existing photos and insert these current ones.
-            // Always send the current state of imageSlots to the backend.
-        const photosToSave = imageSlots
-          .filter(slot => slot && slot.embedding && slot.preview)
-          .map(slot => ({
-            embedding: slot.embedding,
-            photo_png: slot.preview
-          }));
+      // Sync photos with the backend.
+      // The backend replaces all existing photos with this list.
+      const photosToSave = imageSlots
+        .filter(slot => slot && slot.embedding && slot.preview)
+        .map(slot => ({
+          embedding: slot.embedding,
+          photo_png: slot.preview
+        }));
 
-        let photoError = null;
+      let photoError = null;
 
-        if (employeeId && photosToSave.length > 0) {
-          try {
-            await saveEmployeePhotos(employeeId, photosToSave);
-          } catch (photoErr) {
-            console.error("Failed to save photos:", photoErr);
-            photoError = photoErr;
-          }
+      // Always call saveEmployeePhotos if we have an ID, to handle deletions too.
+      if (employeeId) {
+        try {
+          await saveEmployeePhotos(employeeId, photosToSave);
+        } catch (photoErr) {
+          console.error("Failed to save photos:", photoErr);
+          photoError = photoErr;
         }
+      }
 
         setShowModal(false);
 
@@ -804,7 +799,7 @@ const closeCamera = () => {
               <Form.Select value={selectedDepartment} onChange={e => setSelectedDepartment(e.target.value)}>
                 <option>All Departments</option>
                 {departments.map(d => (
-                  <option key={d.department_ID} value={d.department_name}>{d.department_name}</option>
+                  <option key={d.id} value={d.dept_name}>{d.dept_name}</option>
                 ))}
               </Form.Select>
             </Col>
@@ -911,7 +906,7 @@ const closeCamera = () => {
                   <Form.Select name="department_ID" value={formData.department_ID} onChange={handleChange} required>
                     <option value="">Select Department</option>
                     {departments.map(d => (
-                      <option key={d.department_ID} value={d.department_ID}>{d.department_name}</option>
+                      <option key={d.id} value={d.id}>{d.dept_name}</option>
                     ))}
                   </Form.Select>
                 </Form.Group>
@@ -1102,14 +1097,39 @@ const closeCamera = () => {
                 Slot {(currentCapturingSlot ?? 0) + 1} of {MAX_SLOTS}
               </div>
 
-              {/* All requirements met banner */}
-              {allAutoReqsMet && (
+              {/* All requirements met banner or Countdown */}
+              {allAutoReqsMet ? (
                 <div style={{
                   position: 'absolute', top: 12, right: 12,
                   background: 'rgba(40,167,69,0.9)', color: '#fff',
                   borderRadius: 20, padding: '3px 12px', fontSize: 12, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', gap: 6,
                 }}>
-                  ✅ Ready to capture!
+                  {countdown !== null ? (
+                    <>📸 Capturing in {countdown}s...</>
+                  ) : (
+                    <>✅ Ready to capture!</>
+                  )}
+                </div>
+              ) : null}
+
+              {/* Centered Large Countdown */}
+              {countdown !== null && (
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  fontSize: '120px',
+                  fontWeight: '800',
+                  color: '#fff',
+                  textShadow: '0 0 20px rgba(0,0,0,0.8)',
+                  zIndex: 200,
+                  pointerEvents: 'none',
+                  animation: 'pulse 1s infinite'
+                }}>
+                  <style>{`@keyframes pulse { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }`}</style>
+                  {countdown}
                 </div>
               )}
               {/* Inline confirm — replaces window.confirm() */}

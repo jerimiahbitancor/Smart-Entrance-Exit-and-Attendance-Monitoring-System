@@ -1,0 +1,632 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=f2d246ea"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$();
+import __vite__cjsImport1_react from "/node_modules/.vite/deps/react.js?v=f2d246ea"; const React = __vite__cjsImport1_react.__esModule ? __vite__cjsImport1_react.default : __vite__cjsImport1_react; const useState = __vite__cjsImport1_react["useState"]; const useEffect = __vite__cjsImport1_react["useEffect"];
+import EditProgramModal from "/src/pages/superadminpages/SystemSettings/EditProgramModal.jsx";
+import AddProgramModal from "/src/pages/superadminpages/SystemSettings/AddProgramModal.jsx";
+import Swal from "/node_modules/.vite/deps/sweetalert2.js?v=1b208f3f";
+import { MdSchool } from "/node_modules/.vite/deps/react-icons_md.js?v=ada0787c";
+const ROWS_PER_PAGE = 10;
+function EditProgramTab() {
+  _s();
+  const [search, setSearch] = useState("");
+  const [college, setCollege] = useState("");
+  const [programType, setProgramType] = useState("All");
+  const [programStatus, setProgramStatus] = useState("Active");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [departments, setDepartments] = useState([]);
+  const [programs, setPrograms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editingProgram, setEditingProgram] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [totalPrograms, setTotalPrograms] = useState(0);
+  const fetchTotalPrograms = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/programs/active/count");
+      const data = await response.json();
+      setTotalPrograms(data.total);
+    } catch (error) {
+      console.error("Error fetching total programs:", error);
+    }
+  };
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/departments");
+      const data = await response.json();
+      setDepartments(data);
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+    }
+  };
+  const fetchPrograms = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      if (college) params.append("department", college);
+      if (programType && programType !== "All") params.append("program_type", programType);
+      params.append("program_status", "Active");
+      const response = await fetch(`http://localhost:5000/api/programs?${params}`);
+      const data = await response.json();
+      setPrograms(data);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error("Error fetching programs:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to load programs",
+        confirmButtonColor: "#3085d6"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchDepartments();
+    fetchTotalPrograms();
+  }, []);
+  useEffect(() => {
+    fetchPrograms();
+    fetchTotalPrograms();
+  }, [search, college, programType]);
+  const filtered = programs;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginated = filtered.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+  const handleSaveEdit = async (updated) => {
+    Swal.fire({
+      title: "Updating...",
+      text: "Please wait",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    try {
+      const response = await fetch(`http://localhost:5000/api/programs/${editingProgram.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated)
+      });
+      if (!response.ok) throw new Error("Failed to update");
+      await fetchPrograms();
+      await fetchTotalPrograms();
+      setEditingProgram(null);
+      Swal.fire({
+        icon: "success",
+        title: "Updated!",
+        text: "Program has been updated successfully.",
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error("Error updating program:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Failed!",
+        text: "Failed to update program",
+        confirmButtonColor: "#3085d6"
+      });
+    }
+  };
+  const handleAddProgram = async (newProg) => {
+    await fetchPrograms();
+    await fetchTotalPrograms();
+  };
+  const handleDepartmentAdded = async (updatedDepartments) => {
+    setDepartments(updatedDepartments);
+  };
+  const handleArchive = async (program) => {
+    try {
+      const impactResponse = await fetch(`http://localhost:5000/api/programs/${program.id}/archive-impact`);
+      const impact = await impactResponse.json();
+      const result = await Swal.fire({
+        title: "⚠️ Archive Program?",
+        html: `
+          <div style="text-align: left;">
+            <p><strong>Program:</strong> ${program.program_name}</p>
+            <p><strong>Code:</strong> ${program.program_code}</p>
+            <p><strong>Department:</strong> ${program.dept_name}</p>
+            <p style="color: #e74c3c; margin-top: 15px;">
+              <strong>Warning: This action will affect:</strong>
+            </p>
+            <ul style="margin-left: 20px;">
+              <li><strong>${impact.studentsCount}</strong> student(s) enrolled in this program</li>
+            </ul>
+            <p style="margin-top: 15px; color: #e67e22;">
+              Archiving will make this program inactive.
+            </p>
+          </div>
+        `,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, archive it!"
+      });
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: "Archiving...",
+          text: "Please wait",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+        const response = await fetch(`http://localhost:5000/api/programs/${program.id}/archive`, {
+          method: "PATCH"
+        });
+        if (!response.ok) throw new Error("Failed to archive");
+        setPrograms((prev) => prev.filter((p) => p.id !== program.id));
+        await fetchTotalPrograms();
+        Swal.fire({
+          icon: "success",
+          title: "Archived!",
+          html: `"${program.programName}" has been archived.<br>Affected: ${impact.studentsCount} student(s)`,
+          timer: 2e3,
+          showConfirmButton: false
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching impact or archiving:", error);
+      const result = await Swal.fire({
+        title: "Archive Program?",
+        text: `Are you sure you want to archive "${program.programName}"?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, archive it!"
+      });
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: "Archiving...",
+          text: "Please wait",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+        try {
+          const response = await fetch(`http://localhost:5000/api/programs/${program.id}/archive`, {
+            method: "PATCH"
+          });
+          if (!response.ok) throw new Error("Failed to archive");
+          setPrograms((prev) => prev.filter((p) => p.id !== program.id));
+          await fetchTotalPrograms();
+          Swal.fire({
+            icon: "success",
+            title: "Archived!",
+            text: `"${program.program_name}" has been archived.`,
+            timer: 1500,
+            showConfirmButton: false
+          });
+        } catch (err) {
+          console.error("Error archiving program:", err);
+          Swal.fire({
+            icon: "error",
+            title: "Failed!",
+            text: "Failed to archive program",
+            confirmButtonColor: "#3085d6"
+          });
+        }
+      }
+    }
+  };
+  if (loading) {
+    return /* @__PURE__ */ jsxDEV("div", { className: "edit-program-tab", style: { padding: "20px", textAlign: "center" }, children: "Loading programs..." }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+      lineNumber: 245,
+      columnNumber: 12
+    }, this);
+  }
+  return /* @__PURE__ */ jsxDEV("div", { className: "edit-program-tab", children: [
+    /* @__PURE__ */ jsxDEV("div", { className: "stats-container", style: { marginBottom: "20px" }, children: /* @__PURE__ */ jsxDEV("div", { className: "stat-card program-count", style: { borderLeft: "5px solid #e91e63" }, children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "stat-icon", style: { backgroundColor: "#fce4ec", color: "#e91e63" }, children: /* @__PURE__ */ jsxDEV(MdSchool, {}, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 254,
+        columnNumber: 13
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 253,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "stat-details", children: [
+        /* @__PURE__ */ jsxDEV("h3", { children: "Total Programs" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 257,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("p", { className: "stat-number", style: { color: "#e91e63" }, children: totalPrograms }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 258,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 256,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+      lineNumber: 252,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+      lineNumber: 251,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "ep-topbar", children: [
+      /* @__PURE__ */ jsxDEV(
+        "input",
+        {
+          type: "text",
+          className: "ep-search",
+          placeholder: "Search",
+          value: search,
+          onChange: (e) => setSearch(e.target.value)
+        },
+        void 0,
+        false,
+        {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 264,
+          columnNumber: 9
+        },
+        this
+      ),
+      /* @__PURE__ */ jsxDEV(
+        "select",
+        {
+          value: college,
+          onChange: (e) => setCollege(e.target.value),
+          style: { padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" },
+          children: [
+            /* @__PURE__ */ jsxDEV("option", { value: "", children: "All Departments" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+              lineNumber: 276,
+              columnNumber: 11
+            }, this),
+            departments.map(
+              (dept) => /* @__PURE__ */ jsxDEV("option", { value: dept.id, children: dept.dept_name }, dept.id, false, {
+                fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+                lineNumber: 278,
+                columnNumber: 11
+              }, this)
+            )
+          ]
+        },
+        void 0,
+        true,
+        {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 271,
+          columnNumber: 9
+        },
+        this
+      ),
+      /* @__PURE__ */ jsxDEV(
+        "select",
+        {
+          value: programType,
+          onChange: (e) => setProgramType(e.target.value),
+          style: { padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" },
+          children: [
+            /* @__PURE__ */ jsxDEV("option", { value: "All", children: "All Types" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+              lineNumber: 288,
+              columnNumber: 11
+            }, this),
+            /* @__PURE__ */ jsxDEV("option", { value: "Undergraduate", children: "Undergraduate" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+              lineNumber: 289,
+              columnNumber: 11
+            }, this),
+            /* @__PURE__ */ jsxDEV("option", { value: "Graduate", children: "Graduate" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+              lineNumber: 290,
+              columnNumber: 11
+            }, this)
+          ]
+        },
+        void 0,
+        true,
+        {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 283,
+          columnNumber: 9
+        },
+        this
+      ),
+      /* @__PURE__ */ jsxDEV("button", { className: "ep-add-btn", onClick: () => setShowAddModal(true), children: "+ Add New Program" }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 292,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+      lineNumber: 263,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "ep-table-wrapper", children: /* @__PURE__ */ jsxDEV("table", { className: "ep-table", children: [
+      /* @__PURE__ */ jsxDEV("thead", { children: /* @__PURE__ */ jsxDEV("tr", { children: [
+        /* @__PURE__ */ jsxDEV("th", { children: "No." }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 299,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("th", { children: "Program Code" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 300,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("th", { children: "Program Name" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 301,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("th", { children: "College/Department" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 302,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("th", { children: "Type" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 303,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("th", { children: "Duration" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 304,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("th", { children: "Status" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 305,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("th", { children: "Date Created" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 306,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV("th", { children: "Action" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 307,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 298,
+        columnNumber: 13
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 297,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("tbody", { children: paginated.length > 0 ? paginated.map(
+        (prog, idx) => /* @__PURE__ */ jsxDEV("tr", { children: [
+          /* @__PURE__ */ jsxDEV("td", { children: (safePage - 1) * ROWS_PER_PAGE + idx + 1 }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 314,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ jsxDEV("td", { children: prog.program_code }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 315,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ jsxDEV("td", { children: prog.program_name }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 316,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ jsxDEV("td", { children: prog.dept_name }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 317,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ jsxDEV("td", { children: /* @__PURE__ */ jsxDEV("span", { className: `type-badge ${prog.program_type === "Graduate" ? "graduate" : "undergrad"}`, children: prog.program_type }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 318,
+            columnNumber: 23
+          }, this) }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 318,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ jsxDEV("td", { children: [
+            prog.duration,
+            " ",
+            prog.duration === 1 ? "year" : "years"
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 319,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ jsxDEV("td", { children: /* @__PURE__ */ jsxDEV("span", { className: `status-badge ${prog.program_status === "Active" ? "active" : "inactive"}`, children: prog.program_status }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 320,
+            columnNumber: 23
+          }, this) }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 320,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ jsxDEV("td", { children: prog.date_created ? new Date(prog.date_created).toLocaleDateString("en-US", { timeZone: "Asia/Manila" }) : "N/A" }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 321,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ jsxDEV("td", { children: [
+            /* @__PURE__ */ jsxDEV("button", { className: "ep-edit-btn", onClick: () => setEditingProgram(prog), children: "Edit" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+              lineNumber: 323,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV("button", { className: "ep-archive-btn", onClick: () => handleArchive(prog), children: "Archive" }, void 0, false, {
+              fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+              lineNumber: 324,
+              columnNumber: 21
+            }, this)
+          ] }, void 0, true, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 322,
+            columnNumber: 19
+          }, this)
+        ] }, prog.id, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 313,
+          columnNumber: 13
+        }, this)
+      ) : /* @__PURE__ */ jsxDEV("tr", { children: /* @__PURE__ */ jsxDEV("td", { colSpan: "9", className: "ep-empty", children: "No programs found." }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 330,
+        columnNumber: 17
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 329,
+        columnNumber: 13
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 310,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+      lineNumber: 296,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+      lineNumber: 295,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "ep-pagination", children: [
+      /* @__PURE__ */ jsxDEV(
+        "button",
+        {
+          className: "ep-page-btn ep-page-nav",
+          onClick: () => setCurrentPage((p) => Math.max(1, p - 1)),
+          disabled: safePage === 1,
+          children: "← Previous"
+        },
+        void 0,
+        false,
+        {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 338,
+          columnNumber: 9
+        },
+        this
+      ),
+      Array.from({ length: totalPages }, (_, i) => i + 1).map(
+        (page) => /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            className: `ep-page-btn ep-page-num ${safePage === page ? "ep-page-active" : ""}`,
+            onClick: () => setCurrentPage(page),
+            children: page
+          },
+          page,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+            lineNumber: 346,
+            columnNumber: 9
+          },
+          this
+        )
+      ),
+      /* @__PURE__ */ jsxDEV(
+        "button",
+        {
+          className: "ep-page-btn ep-page-nav",
+          onClick: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
+          disabled: safePage === totalPages,
+          children: "Next →"
+        },
+        void 0,
+        false,
+        {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+          lineNumber: 354,
+          columnNumber: 9
+        },
+        this
+      )
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+      lineNumber: 337,
+      columnNumber: 7
+    }, this),
+    editingProgram && /* @__PURE__ */ jsxDEV(
+      EditProgramModal,
+      {
+        program: editingProgram,
+        onClose: () => setEditingProgram(null),
+        onSave: handleSaveEdit,
+        departments,
+        onDepartmentAdded: handleDepartmentAdded
+      },
+      void 0,
+      false,
+      {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 364,
+        columnNumber: 7
+      },
+      this
+    ),
+    showAddModal && /* @__PURE__ */ jsxDEV(
+      AddProgramModal,
+      {
+        onClose: () => setShowAddModal(false),
+        onAdd: handleAddProgram,
+        departments,
+        onDepartmentAdded: handleDepartmentAdded
+      },
+      void 0,
+      false,
+      {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+        lineNumber: 374,
+        columnNumber: 7
+      },
+      this
+    )
+  ] }, void 0, true, {
+    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx",
+    lineNumber: 249,
+    columnNumber: 5
+  }, this);
+}
+_s(EditProgramTab, "eE0bn5bNp9Jnbf1bfOY+paV/8GM=");
+_c = EditProgramTab;
+export default EditProgramTab;
+var _c;
+$RefreshReg$(_c, "EditProgramTab");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/EditProgramTab.jsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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U0FBUyxNQUFNQyxnQkFBZ0IsS0FBSztBQUFBLFFBQ3BDLE9BQU84QztBQUFBQSxRQUNQO0FBQUEsUUFDQSxtQkFBbUJFO0FBQUFBO0FBQUFBLE1BSnJCO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxJQUkyQztBQUFBLE9BakkvQztBQUFBO0FBQUE7QUFBQTtBQUFBLFNBb0lBO0FBRUo7QUFBQ3BFLEdBclhRRCxnQkFBYztBQUFBLEtBQWRBO0FBdVhULGVBQWVBO0FBQWUsSUFBQXNIO0FBQUEsYUFBQUEsSUFBQSIsIm5hbWVzIjpbIlJlYWN0IiwidXNlU3RhdGUiLCJ1c2VFZmZlY3QiLCJFZGl0UHJvZ3JhbU1vZGFsIiwiQWRkUHJvZ3JhbU1vZGFsIiwiU3dhbCIsIk1kU2Nob29sIiwiUk9XU19QRVJfUEFHRSIsIkVkaXRQcm9ncmFtVGFiIiwiX3MiLCJzZWFyY2giLCJzZXRTZWFyY2giLCJjb2xsZWdlIiwic2V0Q29sbGVnZSIsInByb2dyYW1UeXBlIiwic2V0UHJvZ3JhbVR5cGUiLCJwcm9ncmFtU3RhdHVzIiwic2V0UHJvZ3JhbVN0YXR1cyIsImN1cnJlbnRQYWdlIiwic2V0Q3VycmVudFBhZ2UiLCJkZXBhcnRtZW50cyIsInNldERlcGFydG1lbnRzIiwicHJvZ3JhbXMiLCJzZXRQcm9ncmFtcyIsImxvYWRpbmciLCJzZXRMb2FkaW5nIiwiZWRpdGluZ1Byb2dyYW0iLCJzZXRFZGl0aW5nUHJvZ3JhbSIsInNob3dBZGRNb2RhbCIsInNldFNob3dBZGRNb2RhbCIsInRvdGFsUHJvZ3JhbXMiLCJzZXRUb3RhbFByb2dyYW1zIiwiZmV0Y2hUb3RhbFByb2dyYW1zIiwicmVzcG9uc2UiLCJmZXRjaCIsImRhdGEiLCJqc29uIiwidG90YWwiLCJlcnJvciIsImNvbnNvbGUiLCJmZXRjaERlcGFydG1lbnRzIiwiZmV0Y2hQcm9ncmFtcyIsInBhcmFtcyIsIlVSTFNlYXJjaFBhcmFtcyIsImFwcGVuZCIsImZpcmUiLCJpY29uIiwidGl0bGUiLCJ0ZXh0IiwiY29uZmlybUJ1dHRvbkNvbG9yIiwiZmlsdGVyZWQiLCJ0b3RhbFBhZ2VzIiwiTWF0aCIsIm1heCIsImNlaWwiLCJsZW5ndGgiLCJzYWZlUGFnZSIsIm1pbiIsInBhZ2luYXRlZCIsInNsaWNlIiwiaGFuZGxlU2F2ZUVkaXQiLCJ1cGRhdGVkIiwiYWxsb3dPdXRzaWRlQ2xpY2siLCJkaWRPcGVuIiwic2hvd0xvYWRpbmciLCJpZCIsIm1ldGhvZCIsImhlYWRlcnMiLCJib2R5IiwiSlNPTiIsInN0cmluZ2lmeSIsIm9rIiwiRXJyb3IiLCJ0aW1lciIsInNob3dDb25maXJtQnV0dG9uIiwiaGFuZGxlQWRkUHJvZ3JhbSIsIm5ld1Byb2ciLCJoYW5kbGVEZXBhcnRtZW50QWRkZWQiLCJ1cGRhdGVkRGVwYXJ0bWVudHMiLCJoYW5kbGVBcmNoaXZlIiwicHJvZ3JhbSIsImltcGFjdFJlc3BvbnNlIiwiaW1wYWN0IiwicmVzdWx0IiwiaHRtbCIsInByb2dyYW1fbmFtZSIsInByb2dyYW1fY29kZSIsImRlcHRfbmFtZSIsInN0dWRlbnRzQ291bnQiLCJzaG93Q2FuY2VsQnV0dG9uIiwiY2FuY2VsQnV0dG9uQ29sb3IiLCJjb25maXJtQnV0dG9uVGV4dCIsImlzQ29uZmlybWVkIiwicHJldiIsImZpbHRlciIsInAiLCJwcm9ncmFtTmFtZSIsImVyciIsInBhZGRpbmciLCJ0ZXh0QWxpZ24iLCJtYXJnaW5Cb3R0b20iLCJib3JkZXJMZWZ0IiwiYmFja2dyb3VuZENvbG9yIiwiY29sb3IiLCJlIiwidGFyZ2V0IiwidmFsdWUiLCJib3JkZXJSYWRpdXMiLCJib3JkZXIiLCJmb250U2l6ZSIsIm1hcCIsImRlcHQiLCJwcm9nIiwiaWR4IiwicHJvZ3JhbV90eXBlIiwiZHVyYXRpb24iLCJwcm9ncmFtX3N0YXR1cyIsImRhdGVfY3JlYXRlZCIsIkRhdGUiLCJ0b0xvY2FsZURhdGVTdHJpbmciLCJ0aW1lWm9uZSIsIkFycmF5IiwiZnJvbSIsIl8iLCJpIiwicGFnZSIsIl9jIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIkVkaXRQcm9ncmFtVGFiLmpzeCJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBFZGl0UHJvZ3JhbVRhYi5qc3hcclxuaW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QgfSBmcm9tICdyZWFjdCc7XHJcbmltcG9ydCBFZGl0UHJvZ3JhbU1vZGFsIGZyb20gJy4vRWRpdFByb2dyYW1Nb2RhbCc7XHJcbmltcG9ydCBBZGRQcm9ncmFtTW9kYWwgZnJvbSAnLi9BZGRQcm9ncmFtTW9kYWwnO1xyXG5pbXBvcnQgU3dhbCBmcm9tICdzd2VldGFsZXJ0Mic7XHJcbmltcG9ydCB7IE1kU2Nob29sIH0gZnJvbSAncmVhY3QtaWNvbnMvbWQnO1xyXG5cclxuY29uc3QgUk9XU19QRVJfUEFHRSA9IDEwO1xyXG5cclxuZnVuY3Rpb24gRWRpdFByb2dyYW1UYWIoKSB7XHJcbiAgY29uc3QgW3NlYXJjaCwgc2V0U2VhcmNoXSA9IHVzZVN0YXRlKCcnKTtcclxuICBjb25zdCBbY29sbGVnZSwgc2V0Q29sbGVnZV0gPSB1c2VTdGF0ZSgnJyk7XHJcbiAgY29uc3QgW3Byb2dyYW1UeXBlLCBzZXRQcm9ncmFtVHlwZV0gPSB1c2VTdGF0ZSgnQWxsJyk7XHJcbiAgY29uc3QgW3Byb2dyYW1TdGF0dXMsIHNldFByb2dyYW1TdGF0dXNdID0gdXNlU3RhdGUoJ0FjdGl2ZScpO1xyXG4gIGNvbnN0IFtjdXJyZW50UGFnZSwgc2V0Q3VycmVudFBhZ2VdID0gdXNlU3RhdGUoMSk7XHJcbiAgY29uc3QgW2RlcGFydG1lbnRzLCBzZXREZXBhcnRtZW50c10gPSB1c2VTdGF0ZShbXSk7XHJcbiAgY29uc3QgW3Byb2dyYW1zLCBzZXRQcm9ncmFtc10gPSB1c2VTdGF0ZShbXSk7XHJcbiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUodHJ1ZSk7XHJcbiAgY29uc3QgW2VkaXRpbmdQcm9ncmFtLCBzZXRFZGl0aW5nUHJvZ3JhbV0gPSB1c2VTdGF0ZShudWxsKTtcclxuICBjb25zdCBbc2hvd0FkZE1vZGFsLCBzZXRTaG93QWRkTW9kYWxdID0gdXNlU3RhdGUoZmFsc2UpO1xyXG4gIGNvbnN0IFt0b3RhbFByb2dyYW1zLCBzZXRUb3RhbFByb2dyYW1zXSA9IHVzZVN0YXRlKDApO1xyXG5cclxuIGNvbnN0IGZldGNoVG90YWxQcm9ncmFtcyA9IGFzeW5jICgpID0+IHtcclxuICAgIHRyeSB7XHJcbiAgICAgICAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaCgnaHR0cDovL2xvY2FsaG9zdDo1MDAwL2FwaS9wcm9ncmFtcy9hY3RpdmUvY291bnQnKTtcclxuICAgICAgICBjb25zdCBkYXRhID0gYXdhaXQgcmVzcG9uc2UuanNvbigpO1xyXG4gICAgICAgIHNldFRvdGFsUHJvZ3JhbXMoZGF0YS50b3RhbCk7XHJcbiAgICB9IGNhdGNoIChlcnJvcikge1xyXG4gICAgICAgIGNvbnNvbGUuZXJyb3IoJ0Vycm9yIGZldGNoaW5nIHRvdGFsIHByb2dyYW1zOicsIGVycm9yKTtcclxuICAgIH1cclxufTtcclxuICAvLyBGZXRjaCBkZXBhcnRtZW50cyBmcm9tIGJhY2tlbmRcclxuICBjb25zdCBmZXRjaERlcGFydG1lbnRzID0gYXN5bmMgKCkgPT4ge1xyXG4gICAgdHJ5IHtcclxuICAgICAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaCgnaHR0cDovL2xvY2FsaG9zdDo1MDAwL2FwaS9kZXBhcnRtZW50cycpO1xyXG4gICAgICBjb25zdCBkYXRhID0gYXdhaXQgcmVzcG9uc2UuanNvbigpO1xyXG4gICAgICBzZXREZXBhcnRtZW50cyhkYXRhKTtcclxuICAgIH0gY2F0Y2ggKGVycm9yKSB7XHJcbiAgICAgIGNvbnNvbGUuZXJyb3IoJ0Vycm9yIGZldGNoaW5nIGRlcGFydG1lbnRzOicsIGVycm9yKTtcclxuICAgIH1cclxuICB9O1xyXG5cclxuICAvLyBGZXRjaCBwcm9ncmFtcyBmcm9tIGJhY2tlbmRcclxuICBjb25zdCBmZXRjaFByb2dyYW1zID0gYXN5bmMgKCkgPT4ge1xyXG4gICAgc2V0TG9hZGluZyh0cnVlKTtcclxuICAgIHRyeSB7XHJcbiAgICAgIGNvbnN0IHBhcmFtcyA9IG5ldyBVUkxTZWFyY2hQYXJhbXMoKTtcclxuICAgICAgaWYgKHNlYXJjaCkgcGFyYW1zLmFwcGVuZCgnc2VhcmNoJywgc2VhcmNoKTtcclxuICAgICAgaWYgKGNvbGxlZ2UpIHBhcmFtcy5hcHBlbmQoJ2RlcGFydG1lbnQnLCBjb2xsZWdlKTtcclxuICAgICAgaWYgKHByb2dyYW1UeXBlICYmIHByb2dyYW1UeXBlICE9PSAnQWxsJykgcGFyYW1zLmFwcGVuZCgncHJvZ3JhbV90eXBlJywgcHJvZ3JhbVR5cGUpO1xyXG4gICAgICBwYXJhbXMuYXBwZW5kKCdwcm9ncmFtX3N0YXR1cycsICdBY3RpdmUnKTtcclxuICAgICAgXHJcbiAgICAgIGNvbnN0IHJlc3BvbnNlID0gYXdhaXQgZmV0Y2goYGh0dHA6Ly9sb2NhbGhvc3Q6NTAwMC9hcGkvcHJvZ3JhbXM/JHtwYXJhbXN9YCk7XHJcbiAgICAgIGNvbnN0IGRhdGEgPSBhd2FpdCByZXNwb25zZS5qc29uKCk7XHJcbiAgICAgIHNldFByb2dyYW1zKGRhdGEpO1xyXG4gICAgICBzZXRDdXJyZW50UGFnZSgxKTtcclxuICAgIH0gY2F0Y2ggKGVycm9yKSB7XHJcbiAgICAgIGNvbnNvbGUuZXJyb3IoJ0Vycm9yIGZldGNoaW5nIHByb2dyYW1zOicsIGVycm9yKTtcclxuICAgICAgU3dhbC5maXJlKHtcclxuICAgICAgICBpY29uOiAnZXJyb3InLFxyXG4gICAgICAgIHRpdGxlOiAnRXJyb3InLFxyXG4gICAgICAgIHRleHQ6ICdGYWlsZWQgdG8gbG9hZCBwcm9ncmFtcycsXHJcbiAgICAgICAgY29uZmlybUJ1dHRvbkNvbG9yOiAnIzMwODVkNidcclxuICAgICAgfSk7XHJcbiAgICB9IGZpbmFsbHkge1xyXG4gICAgICBzZXRMb2FkaW5nKGZhbHNlKTtcclxuICAgIH1cclxuICB9O1xyXG5cclxuICB1c2VFZmZlY3QoKCkgPT4ge1xyXG4gICAgZmV0Y2hEZXBhcnRtZW50cygpO1xyXG4gICAgZmV0Y2hUb3RhbFByb2dyYW1zKCk7XHJcbiAgfSwgW10pO1xyXG5cclxuICB1c2VFZmZlY3QoKCkgPT4ge1xyXG4gICAgZmV0Y2hQcm9ncmFtcygpO1xyXG4gICAgZmV0Y2hUb3RhbFByb2dyYW1zKCk7XHJcbiAgfSwgW3NlYXJjaCwgY29sbGVnZSwgcHJvZ3JhbVR5cGVdKTtcclxuXHJcbiAgY29uc3QgZmlsdGVyZWQgPSBwcm9ncmFtcztcclxuICBjb25zdCB0b3RhbFBhZ2VzID0gTWF0aC5tYXgoMSwgTWF0aC5jZWlsKGZpbHRlcmVkLmxlbmd0aCAvIFJPV1NfUEVSX1BBR0UpKTtcclxuICBjb25zdCBzYWZlUGFnZSA9IE1hdGgubWluKGN1cnJlbnRQYWdlLCB0b3RhbFBhZ2VzKTtcclxuICBjb25zdCBwYWdpbmF0ZWQgPSBmaWx0ZXJlZC5zbGljZSgoc2FmZVBhZ2UgLSAxKSAqIFJPV1NfUEVSX1BBR0UsIHNhZmVQYWdlICogUk9XU19QRVJfUEFHRSk7XHJcblxyXG4gIGNvbnN0IGhhbmRsZVNhdmVFZGl0ID0gYXN5bmMgKHVwZGF0ZWQpID0+IHtcclxuICAgIFN3YWwuZmlyZSh7XHJcbiAgICAgIHRpdGxlOiAnVXBkYXRpbmcuLi4nLFxyXG4gICAgICB0ZXh0OiAnUGxlYXNlIHdhaXQnLFxyXG4gICAgICBhbGxvd091dHNpZGVDbGljazogZmFsc2UsXHJcbiAgICAgIGRpZE9wZW46ICgpID0+IHtcclxuICAgICAgICBTd2FsLnNob3dMb2FkaW5nKCk7XHJcbiAgICAgIH1cclxuICAgIH0pO1xyXG5cclxuICAgIHRyeSB7XHJcbiAgICAgIGNvbnN0IHJlc3BvbnNlID0gYXdhaXQgZmV0Y2goYGh0dHA6Ly9sb2NhbGhvc3Q6NTAwMC9hcGkvcHJvZ3JhbXMvJHtlZGl0aW5nUHJvZ3JhbS5pZH1gLCB7XHJcbiAgICAgICAgbWV0aG9kOiAnUFVUJyxcclxuICAgICAgICBoZWFkZXJzOiB7ICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbicgfSxcclxuICAgICAgICBib2R5OiBKU09OLnN0cmluZ2lmeSh1cGRhdGVkKVxyXG4gICAgICB9KTtcclxuICAgICAgXHJcbiAgICAgIGlmICghcmVzcG9uc2Uub2spIHRocm93IG5ldyBFcnJvcignRmFpbGVkIHRvIHVwZGF0ZScpO1xyXG4gICAgICBcclxuICAgICAgYXdhaXQgZmV0Y2hQcm9ncmFtcygpO1xyXG4gICAgICBhd2FpdCBmZXRjaFRvdGFsUHJvZ3JhbXMoKTtcclxuICAgICAgc2V0RWRpdGluZ1Byb2dyYW0obnVsbCk7XHJcbiAgICAgIFxyXG4gICAgICBTd2FsLmZpcmUoe1xyXG4gICAgICAgIGljb246ICdzdWNjZXNzJyxcclxuICAgICAgICB0aXRsZTogJ1VwZGF0ZWQhJyxcclxuICAgICAgICB0ZXh0OiAnUHJvZ3JhbSBoYXMgYmVlbiB1cGRhdGVkIHN1Y2Nlc3NmdWxseS4nLFxyXG4gICAgICAgIHRpbWVyOiAxNTAwLFxyXG4gICAgICAgIHNob3dDb25maXJtQnV0dG9uOiBmYWxzZVxyXG4gICAgICB9KTtcclxuICAgIH0gY2F0Y2ggKGVycm9yKSB7XHJcbiAgICAgIGNvbnNvbGUuZXJyb3IoJ0Vycm9yIHVwZGF0aW5nIHByb2dyYW06JywgZXJyb3IpO1xyXG4gICAgICBTd2FsLmZpcmUoe1xyXG4gICAgICAgIGljb246ICdlcnJvcicsXHJcbiAgICAgICAgdGl0bGU6ICdGYWlsZWQhJyxcclxuICAgICAgICB0ZXh0OiAnRmFpbGVkIHRvIHVwZGF0ZSBwcm9ncmFtJyxcclxuICAgICAgICBjb25maXJtQnV0dG9uQ29sb3I6ICcjMzA4NWQ2J1xyXG4gICAgICB9KTtcclxuICAgIH1cclxuICB9O1xyXG5cclxuICBjb25zdCBoYW5kbGVBZGRQcm9ncmFtID0gYXN5bmMgKG5ld1Byb2cpID0+IHtcclxuICAgIGF3YWl0IGZldGNoUHJvZ3JhbXMoKTtcclxuICAgIGF3YWl0IGZldGNoVG90YWxQcm9ncmFtcygpO1xyXG4gIH07XHJcblxyXG4gIGNvbnN0IGhhbmRsZURlcGFydG1lbnRBZGRlZCA9IGFzeW5jICh1cGRhdGVkRGVwYXJ0bWVudHMpID0+IHtcclxuICAgIHNldERlcGFydG1lbnRzKHVwZGF0ZWREZXBhcnRtZW50cyk7XHJcbiAgfTtcclxuXHJcbiAgY29uc3QgaGFuZGxlQXJjaGl2ZSA9IGFzeW5jIChwcm9ncmFtKSA9PiB7XHJcbiAgICB0cnkge1xyXG4gICAgICBjb25zdCBpbXBhY3RSZXNwb25zZSA9IGF3YWl0IGZldGNoKGBodHRwOi8vbG9jYWxob3N0OjUwMDAvYXBpL3Byb2dyYW1zLyR7cHJvZ3JhbS5pZH0vYXJjaGl2ZS1pbXBhY3RgKTtcclxuICAgICAgY29uc3QgaW1wYWN0ID0gYXdhaXQgaW1wYWN0UmVzcG9uc2UuanNvbigpO1xyXG5cclxuICAgICAgY29uc3QgcmVzdWx0ID0gYXdhaXQgU3dhbC5maXJlKHtcclxuICAgICAgICB0aXRsZTogJ+KaoO+4jyBBcmNoaXZlIFByb2dyYW0/JyxcclxuICAgICAgICBodG1sOiBgXHJcbiAgICAgICAgICA8ZGl2IHN0eWxlPVwidGV4dC1hbGlnbjogbGVmdDtcIj5cclxuICAgICAgICAgICAgPHA+PHN0cm9uZz5Qcm9ncmFtOjwvc3Ryb25nPiAke3Byb2dyYW0ucHJvZ3JhbV9uYW1lfTwvcD5cclxuICAgICAgICAgICAgPHA+PHN0cm9uZz5Db2RlOjwvc3Ryb25nPiAke3Byb2dyYW0ucHJvZ3JhbV9jb2RlfTwvcD5cclxuICAgICAgICAgICAgPHA+PHN0cm9uZz5EZXBhcnRtZW50Ojwvc3Ryb25nPiAke3Byb2dyYW0uZGVwdF9uYW1lfTwvcD5cclxuICAgICAgICAgICAgPHAgc3R5bGU9XCJjb2xvcjogI2U3NGMzYzsgbWFyZ2luLXRvcDogMTVweDtcIj5cclxuICAgICAgICAgICAgICA8c3Ryb25nPldhcm5pbmc6IFRoaXMgYWN0aW9uIHdpbGwgYWZmZWN0Ojwvc3Ryb25nPlxyXG4gICAgICAgICAgICA8L3A+XHJcbiAgICAgICAgICAgIDx1bCBzdHlsZT1cIm1hcmdpbi1sZWZ0OiAyMHB4O1wiPlxyXG4gICAgICAgICAgICAgIDxsaT48c3Ryb25nPiR7aW1wYWN0LnN0dWRlbnRzQ291bnR9PC9zdHJvbmc+IHN0dWRlbnQocykgZW5yb2xsZWQgaW4gdGhpcyBwcm9ncmFtPC9saT5cclxuICAgICAgICAgICAgPC91bD5cclxuICAgICAgICAgICAgPHAgc3R5bGU9XCJtYXJnaW4tdG9wOiAxNXB4OyBjb2xvcjogI2U2N2UyMjtcIj5cclxuICAgICAgICAgICAgICBBcmNoaXZpbmcgd2lsbCBtYWtlIHRoaXMgcHJvZ3JhbSBpbmFjdGl2ZS5cclxuICAgICAgICAgICAgPC9wPlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgYCxcclxuICAgICAgICBpY29uOiAnd2FybmluZycsXHJcbiAgICAgICAgc2hvd0NhbmNlbEJ1dHRvbjogdHJ1ZSxcclxuICAgICAgICBjb25maXJtQnV0dG9uQ29sb3I6ICcjZDMzJyxcclxuICAgICAgICBjYW5jZWxCdXR0b25Db2xvcjogJyMzMDg1ZDYnLFxyXG4gICAgICAgIGNvbmZpcm1CdXR0b25UZXh0OiAnWWVzLCBhcmNoaXZlIGl0ISdcclxuICAgICAgfSk7XHJcblxyXG4gICAgICBpZiAocmVzdWx0LmlzQ29uZmlybWVkKSB7XHJcbiAgICAgICAgU3dhbC5maXJlKHtcclxuICAgICAgICAgIHRpdGxlOiAnQXJjaGl2aW5nLi4uJyxcclxuICAgICAgICAgIHRleHQ6ICdQbGVhc2Ugd2FpdCcsXHJcbiAgICAgICAgICBhbGxvd091dHNpZGVDbGljazogZmFsc2UsXHJcbiAgICAgICAgICBkaWRPcGVuOiAoKSA9PiB7XHJcbiAgICAgICAgICAgIFN3YWwuc2hvd0xvYWRpbmcoKTtcclxuICAgICAgICAgIH1cclxuICAgICAgICB9KTtcclxuXHJcbiAgICAgICAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaChgaHR0cDovL2xvY2FsaG9zdDo1MDAwL2FwaS9wcm9ncmFtcy8ke3Byb2dyYW0uaWR9L2FyY2hpdmVgLCB7XHJcbiAgICAgICAgICBtZXRob2Q6ICdQQVRDSCdcclxuICAgICAgICB9KTtcclxuICAgICAgICBcclxuICAgICAgICBpZiAoIXJlc3BvbnNlLm9rKSB0aHJvdyBuZXcgRXJyb3IoJ0ZhaWxlZCB0byBhcmNoaXZlJyk7XHJcbiAgICAgICAgXHJcbiAgICAgICAgc2V0UHJvZ3JhbXMoKHByZXYpID0+IHByZXYuZmlsdGVyKChwKSA9PiBwLmlkICE9PSBwcm9ncmFtLmlkKSk7XHJcbiAgICAgICAgYXdhaXQgZmV0Y2hUb3RhbFByb2dyYW1zKCk7XHJcbiAgICAgICAgXHJcbiAgICAgICAgU3dhbC5maXJlKHtcclxuICAgICAgICAgIGljb246ICdzdWNjZXNzJyxcclxuICAgICAgICAgIHRpdGxlOiAnQXJjaGl2ZWQhJyxcclxuICAgICAgICAgIGh0bWw6IGBcIiR7cHJvZ3JhbS5wcm9ncmFtTmFtZX1cIiBoYXMgYmVlbiBhcmNoaXZlZC48YnI+QWZmZWN0ZWQ6ICR7aW1wYWN0LnN0dWRlbnRzQ291bnR9IHN0dWRlbnQocylgLFxyXG4gICAgICAgICAgdGltZXI6IDIwMDAsXHJcbiAgICAgICAgICBzaG93Q29uZmlybUJ1dHRvbjogZmFsc2VcclxuICAgICAgICB9KTtcclxuICAgICAgfVxyXG4gICAgfSBjYXRjaCAoZXJyb3IpIHtcclxuICAgICAgY29uc29sZS5lcnJvcignRXJyb3IgZmV0Y2hpbmcgaW1wYWN0IG9yIGFyY2hpdmluZzonLCBlcnJvcik7XHJcbiAgICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IFN3YWwuZmlyZSh7XHJcbiAgICAgICAgdGl0bGU6ICdBcmNoaXZlIFByb2dyYW0/JyxcclxuICAgICAgICB0ZXh0OiBgQXJlIHlvdSBzdXJlIHlvdSB3YW50IHRvIGFyY2hpdmUgXCIke3Byb2dyYW0ucHJvZ3JhbU5hbWV9XCI/YCxcclxuICAgICAgICBpY29uOiAnd2FybmluZycsXHJcbiAgICAgICAgc2hvd0NhbmNlbEJ1dHRvbjogdHJ1ZSxcclxuICAgICAgICBjb25maXJtQnV0dG9uQ29sb3I6ICcjZDMzJyxcclxuICAgICAgICBjYW5jZWxCdXR0b25Db2xvcjogJyMzMDg1ZDYnLFxyXG4gICAgICAgIGNvbmZpcm1CdXR0b25UZXh0OiAnWWVzLCBhcmNoaXZlIGl0ISdcclxuICAgICAgfSk7XHJcblxyXG4gICAgICBpZiAocmVzdWx0LmlzQ29uZmlybWVkKSB7XHJcbiAgICAgICAgU3dhbC5maXJlKHtcclxuICAgICAgICAgIHRpdGxlOiAnQXJjaGl2aW5nLi4uJyxcclxuICAgICAgICAgIHRleHQ6ICdQbGVhc2Ugd2FpdCcsXHJcbiAgICAgICAgICBhbGxvd091dHNpZGVDbGljazogZmFsc2UsXHJcbiAgICAgICAgICBkaWRPcGVuOiAoKSA9PiB7XHJcbiAgICAgICAgICAgIFN3YWwuc2hvd0xvYWRpbmcoKTtcclxuICAgICAgICAgIH1cclxuICAgICAgICB9KTtcclxuXHJcbiAgICAgICAgdHJ5IHtcclxuICAgICAgICAgIGNvbnN0IHJlc3BvbnNlID0gYXdhaXQgZmV0Y2goYGh0dHA6Ly9sb2NhbGhvc3Q6NTAwMC9hcGkvcHJvZ3JhbXMvJHtwcm9ncmFtLmlkfS9hcmNoaXZlYCwge1xyXG4gICAgICAgICAgICBtZXRob2Q6ICdQQVRDSCdcclxuICAgICAgICAgIH0pO1xyXG4gICAgICAgICAgXHJcbiAgICAgICAgICBpZiAoIXJlc3BvbnNlLm9rKSB0aHJvdyBuZXcgRXJyb3IoJ0ZhaWxlZCB0byBhcmNoaXZlJyk7XHJcbiAgICAgICAgICBcclxuICAgICAgICAgIHNldFByb2dyYW1zKChwcmV2KSA9PiBwcmV2LmZpbHRlcigocCkgPT4gcC5pZCAhPT0gcHJvZ3JhbS5pZCkpO1xyXG4gICAgICAgICAgYXdhaXQgZmV0Y2hUb3RhbFByb2dyYW1zKCk7XHJcbiAgICAgICAgICBcclxuICAgICAgICAgIFN3YWwuZmlyZSh7XHJcbiAgICAgICAgICAgIGljb246ICdzdWNjZXNzJyxcclxuICAgICAgICAgICAgdGl0bGU6ICdBcmNoaXZlZCEnLFxyXG4gICAgICAgICAgICB0ZXh0OiBgXCIke3Byb2dyYW0ucHJvZ3JhbV9uYW1lfVwiIGhhcyBiZWVuIGFyY2hpdmVkLmAsXHJcbiAgICAgICAgICAgIHRpbWVyOiAxNTAwLFxyXG4gICAgICAgICAgICBzaG93Q29uZmlybUJ1dHRvbjogZmFsc2VcclxuICAgICAgICAgIH0pO1xyXG4gICAgICAgIH0gY2F0Y2ggKGVycikge1xyXG4gICAgICAgICAgY29uc29sZS5lcnJvcignRXJyb3IgYXJjaGl2aW5nIHByb2dyYW06JywgZXJyKTtcclxuICAgICAgICAgIFN3YWwuZmlyZSh7XHJcbiAgICAgICAgICAgIGljb246ICdlcnJvcicsXHJcbiAgICAgICAgICAgIHRpdGxlOiAnRmFpbGVkIScsXHJcbiAgICAgICAgICAgIHRleHQ6ICdGYWlsZWQgdG8gYXJjaGl2ZSBwcm9ncmFtJyxcclxuICAgICAgICAgICAgY29uZmlybUJ1dHRvbkNvbG9yOiAnIzMwODVkNidcclxuICAgICAgICAgIH0pO1xyXG4gICAgICAgIH1cclxuICAgICAgfVxyXG4gICAgfVxyXG4gIH07XHJcblxyXG4gIGlmIChsb2FkaW5nKSB7XHJcbiAgICByZXR1cm4gPGRpdiBjbGFzc05hbWU9XCJlZGl0LXByb2dyYW0tdGFiXCIgc3R5bGU9e3sgcGFkZGluZzogJzIwcHgnLCB0ZXh0QWxpZ246ICdjZW50ZXInIH19PkxvYWRpbmcgcHJvZ3JhbXMuLi48L2Rpdj47XHJcbiAgfVxyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPGRpdiBjbGFzc05hbWU9XCJlZGl0LXByb2dyYW0tdGFiXCI+XHJcbiAgICAgIHsvKiBGdWxsIHdpZHRoIHRvdGFsIGNvdW50IGNhcmQgKi99XHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwic3RhdHMtY29udGFpbmVyXCIgc3R5bGU9e3sgbWFyZ2luQm90dG9tOiAnMjBweCcgfX0+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzdGF0LWNhcmQgcHJvZ3JhbS1jb3VudFwiIHN0eWxlPXt7IGJvcmRlckxlZnQ6ICc1cHggc29saWQgI2U5MWU2MycgfX0+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInN0YXQtaWNvblwiIHN0eWxlPXt7IGJhY2tncm91bmRDb2xvcjogJyNmY2U0ZWMnLCBjb2xvcjogJyNlOTFlNjMnIH19PlxyXG4gICAgICAgICAgICA8TWRTY2hvb2wgLz5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzdGF0LWRldGFpbHNcIj5cclxuICAgICAgICAgICAgPGgzPlRvdGFsIFByb2dyYW1zPC9oMz5cclxuICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwic3RhdC1udW1iZXJcIiBzdHlsZT17eyBjb2xvcjogJyNlOTFlNjMnIH19Pnt0b3RhbFByb2dyYW1zfTwvcD5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICA8L2Rpdj5cclxuXHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZXAtdG9wYmFyXCI+XHJcbiAgICAgICAgPGlucHV0IFxyXG4gICAgICAgICAgdHlwZT1cInRleHRcIiBcclxuICAgICAgICAgIGNsYXNzTmFtZT1cImVwLXNlYXJjaFwiIFxyXG4gICAgICAgICAgcGxhY2Vob2xkZXI9XCJTZWFyY2hcIiBcclxuICAgICAgICAgIHZhbHVlPXtzZWFyY2h9IFxyXG4gICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRTZWFyY2goZS50YXJnZXQudmFsdWUpfSBcclxuICAgICAgICAvPlxyXG4gICAgICAgIDxzZWxlY3QgXHJcbiAgICAgICAgICB2YWx1ZT17Y29sbGVnZX0gXHJcbiAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldENvbGxlZ2UoZS50YXJnZXQudmFsdWUpfSBcclxuICAgICAgICAgIHN0eWxlPXt7IHBhZGRpbmc6ICc4cHggMTJweCcsIGJvcmRlclJhZGl1czogJzZweCcsIGJvcmRlcjogJzFweCBzb2xpZCAjY2NjJywgZm9udFNpemU6ICcxNHB4JyB9fVxyXG4gICAgICAgID5cclxuICAgICAgICAgIDxvcHRpb24gdmFsdWU9XCJcIj5BbGwgRGVwYXJ0bWVudHM8L29wdGlvbj5cclxuICAgICAgICAgIHtkZXBhcnRtZW50cy5tYXAoKGRlcHQpID0+IChcclxuICAgICAgICAgICAgPG9wdGlvbiBrZXk9e2RlcHQuaWR9IHZhbHVlPXtkZXB0LmlkfT5cclxuICAgICAgICAgICAgICB7ZGVwdC5kZXB0X25hbWV9XHJcbiAgICAgICAgICAgIDwvb3B0aW9uPlxyXG4gICAgICAgICAgKSl9XHJcbiAgICAgICAgPC9zZWxlY3Q+XHJcbiAgICAgICAgPHNlbGVjdCBcclxuICAgICAgICAgIHZhbHVlPXtwcm9ncmFtVHlwZX0gXHJcbiAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldFByb2dyYW1UeXBlKGUudGFyZ2V0LnZhbHVlKX0gXHJcbiAgICAgICAgICBzdHlsZT17eyBwYWRkaW5nOiAnOHB4IDEycHgnLCBib3JkZXJSYWRpdXM6ICc2cHgnLCBib3JkZXI6ICcxcHggc29saWQgI2NjYycsIGZvbnRTaXplOiAnMTRweCcgfX1cclxuICAgICAgICA+XHJcbiAgICAgICAgICA8b3B0aW9uIHZhbHVlPVwiQWxsXCI+QWxsIFR5cGVzPC9vcHRpb24+XHJcbiAgICAgICAgICA8b3B0aW9uIHZhbHVlPVwiVW5kZXJncmFkdWF0ZVwiPlVuZGVyZ3JhZHVhdGU8L29wdGlvbj5cclxuICAgICAgICAgIDxvcHRpb24gdmFsdWU9XCJHcmFkdWF0ZVwiPkdyYWR1YXRlPC9vcHRpb24+XHJcbiAgICAgICAgPC9zZWxlY3Q+XHJcbiAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9XCJlcC1hZGQtYnRuXCIgb25DbGljaz17KCkgPT4gc2V0U2hvd0FkZE1vZGFsKHRydWUpfT4rIEFkZCBOZXcgUHJvZ3JhbTwvYnV0dG9uPlxyXG4gICAgICA8L2Rpdj5cclxuXHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZXAtdGFibGUtd3JhcHBlclwiPlxyXG4gICAgICAgIDx0YWJsZSBjbGFzc05hbWU9XCJlcC10YWJsZVwiPlxyXG4gICAgICAgICAgPHRoZWFkPlxyXG4gICAgICAgICAgICA8dHI+XHJcbiAgICAgICAgICAgICAgPHRoPk5vLjwvdGg+XHJcbiAgICAgICAgICAgICAgPHRoPlByb2dyYW0gQ29kZTwvdGg+XHJcbiAgICAgICAgICAgICAgPHRoPlByb2dyYW0gTmFtZTwvdGg+XHJcbiAgICAgICAgICAgICAgPHRoPkNvbGxlZ2UvRGVwYXJ0bWVudDwvdGg+XHJcbiAgICAgICAgICAgICAgPHRoPlR5cGU8L3RoPlxyXG4gICAgICAgICAgICAgIDx0aD5EdXJhdGlvbjwvdGg+XHJcbiAgICAgICAgICAgICAgPHRoPlN0YXR1czwvdGg+XHJcbiAgICAgICAgICAgICAgPHRoPkRhdGUgQ3JlYXRlZDwvdGg+XHJcbiAgICAgICAgICAgICAgPHRoPkFjdGlvbjwvdGg+XHJcbiAgICAgICAgICAgIDwvdHI+XHJcbiAgICAgICAgICA8L3RoZWFkPlxyXG4gICAgICAgICAgPHRib2R5PlxyXG4gICAgICAgICAgICB7cGFnaW5hdGVkLmxlbmd0aCA+IDAgPyAoXHJcbiAgICAgICAgICAgICAgcGFnaW5hdGVkLm1hcCgocHJvZywgaWR4KSA9PiAoXHJcbiAgICAgICAgICAgICAgICA8dHIga2V5PXtwcm9nLmlkfT5cclxuICAgICAgICAgICAgICAgICAgPHRkPnsoc2FmZVBhZ2UgLSAxKSAqIFJPV1NfUEVSX1BBR0UgKyBpZHggKyAxfTwvdGQ+XHJcbiAgICAgICAgICAgICAgICAgIDx0ZD57cHJvZy5wcm9ncmFtX2NvZGV9PC90ZD5cclxuICAgICAgICAgICAgICAgICAgPHRkPntwcm9nLnByb2dyYW1fbmFtZX08L3RkPlxyXG4gICAgICAgICAgICAgICAgICA8dGQ+e3Byb2cuZGVwdF9uYW1lfTwvdGQ+XHJcbiAgICAgICAgICAgICAgICAgIDx0ZD48c3BhbiBjbGFzc05hbWU9e2B0eXBlLWJhZGdlICR7cHJvZy5wcm9ncmFtX3R5cGUgPT09ICdHcmFkdWF0ZScgPyAnZ3JhZHVhdGUnIDogJ3VuZGVyZ3JhZCd9YH0+e3Byb2cucHJvZ3JhbV90eXBlfTwvc3Bhbj48L3RkPlxyXG4gICAgICAgICAgICAgICAgICA8dGQ+e3Byb2cuZHVyYXRpb259IHtwcm9nLmR1cmF0aW9uID09PSAxID8gJ3llYXInIDogJ3llYXJzJ308L3RkPlxyXG4gICAgICAgICAgICAgICAgICA8dGQ+PHNwYW4gY2xhc3NOYW1lPXtgc3RhdHVzLWJhZGdlICR7cHJvZy5wcm9ncmFtX3N0YXR1cyA9PT0gJ0FjdGl2ZScgPyAnYWN0aXZlJyA6ICdpbmFjdGl2ZSd9YH0+e3Byb2cucHJvZ3JhbV9zdGF0dXN9PC9zcGFuPjwvdGQ+XHJcbiAgICAgICAgICAgICAgICAgIDx0ZD57cHJvZy5kYXRlX2NyZWF0ZWQgPyBuZXcgRGF0ZShwcm9nLmRhdGVfY3JlYXRlZCkudG9Mb2NhbGVEYXRlU3RyaW5nKCdlbi1VUycsIHsgdGltZVpvbmU6ICdBc2lhL01hbmlsYScgfSkgOiAnTi9BJ308L3RkPlxyXG4gICAgICAgICAgICAgICAgICA8dGQ+XHJcbiAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9XCJlcC1lZGl0LWJ0blwiIG9uQ2xpY2s9eygpID0+IHNldEVkaXRpbmdQcm9ncmFtKHByb2cpfT5FZGl0PC9idXR0b24+XHJcbiAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9XCJlcC1hcmNoaXZlLWJ0blwiIG9uQ2xpY2s9eygpID0+IGhhbmRsZUFyY2hpdmUocHJvZyl9PkFyY2hpdmU8L2J1dHRvbj5cclxuICAgICAgICAgICAgICAgICAgPC90ZD5cclxuICAgICAgICAgICAgICAgIDwvdHI+XHJcbiAgICAgICAgICAgICAgKSlcclxuICAgICAgICAgICAgKSA6IChcclxuICAgICAgICAgICAgICA8dHI+XHJcbiAgICAgICAgICAgICAgICA8dGQgY29sU3Bhbj1cIjlcIiBjbGFzc05hbWU9XCJlcC1lbXB0eVwiPk5vIHByb2dyYW1zIGZvdW5kLjwvdGQ+XHJcbiAgICAgICAgICAgICAgPC90cj5cclxuICAgICAgICAgICAgKX1cclxuICAgICAgICAgIDwvdGJvZHk+XHJcbiAgICAgICAgPC90YWJsZT5cclxuICAgICAgPC9kaXY+XHJcblxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImVwLXBhZ2luYXRpb25cIj5cclxuICAgICAgICA8YnV0dG9uIFxyXG4gICAgICAgICAgY2xhc3NOYW1lPVwiZXAtcGFnZS1idG4gZXAtcGFnZS1uYXZcIiBcclxuICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldEN1cnJlbnRQYWdlKChwKSA9PiBNYXRoLm1heCgxLCBwIC0gMSkpfSBcclxuICAgICAgICAgIGRpc2FibGVkPXtzYWZlUGFnZSA9PT0gMX1cclxuICAgICAgICA+XHJcbiAgICAgICAgICDihpAgUHJldmlvdXNcclxuICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICB7QXJyYXkuZnJvbSh7IGxlbmd0aDogdG90YWxQYWdlcyB9LCAoXywgaSkgPT4gaSArIDEpLm1hcCgocGFnZSkgPT4gKFxyXG4gICAgICAgICAgPGJ1dHRvbiBcclxuICAgICAgICAgICAga2V5PXtwYWdlfSBcclxuICAgICAgICAgICAgY2xhc3NOYW1lPXtgZXAtcGFnZS1idG4gZXAtcGFnZS1udW0gJHtzYWZlUGFnZSA9PT0gcGFnZSA/ICdlcC1wYWdlLWFjdGl2ZScgOiAnJ31gfSBcclxuICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0Q3VycmVudFBhZ2UocGFnZSl9XHJcbiAgICAgICAgICA+XHJcbiAgICAgICAgICAgIHtwYWdlfVxyXG4gICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgKSl9XHJcbiAgICAgICAgPGJ1dHRvbiBcclxuICAgICAgICAgIGNsYXNzTmFtZT1cImVwLXBhZ2UtYnRuIGVwLXBhZ2UtbmF2XCIgXHJcbiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRDdXJyZW50UGFnZSgocCkgPT4gTWF0aC5taW4odG90YWxQYWdlcywgcCArIDEpKX0gXHJcbiAgICAgICAgICBkaXNhYmxlZD17c2FmZVBhZ2UgPT09IHRvdGFsUGFnZXN9XHJcbiAgICAgICAgPlxyXG4gICAgICAgICAgTmV4dCDihpJcclxuICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgPC9kaXY+XHJcblxyXG4gICAgICB7ZWRpdGluZ1Byb2dyYW0gJiYgKFxyXG4gICAgICAgIDxFZGl0UHJvZ3JhbU1vZGFsXHJcbiAgICAgICAgICBwcm9ncmFtPXtlZGl0aW5nUHJvZ3JhbX1cclxuICAgICAgICAgIG9uQ2xvc2U9eygpID0+IHNldEVkaXRpbmdQcm9ncmFtKG51bGwpfVxyXG4gICAgICAgICAgb25TYXZlPXtoYW5kbGVTYXZlRWRpdH1cclxuICAgICAgICAgIGRlcGFydG1lbnRzPXtkZXBhcnRtZW50c31cclxuICAgICAgICAgIG9uRGVwYXJ0bWVudEFkZGVkPXtoYW5kbGVEZXBhcnRtZW50QWRkZWR9XHJcbiAgICAgICAgLz5cclxuICAgICAgKX1cclxuXHJcbiAgICAgIHtzaG93QWRkTW9kYWwgJiYgKFxyXG4gICAgICAgIDxBZGRQcm9ncmFtTW9kYWxcclxuICAgICAgICAgIG9uQ2xvc2U9eygpID0+IHNldFNob3dBZGRNb2RhbChmYWxzZSl9XHJcbiAgICAgICAgICBvbkFkZD17aGFuZGxlQWRkUHJvZ3JhbX1cclxuICAgICAgICAgIGRlcGFydG1lbnRzPXtkZXBhcnRtZW50c31cclxuICAgICAgICAgIG9uRGVwYXJ0bWVudEFkZGVkPXtoYW5kbGVEZXBhcnRtZW50QWRkZWR9XHJcbiAgICAgICAgLz5cclxuICAgICAgKX1cclxuICAgIDwvZGl2PlxyXG4gICk7XHJcbn1cclxuXHJcbmV4cG9ydCBkZWZhdWx0IEVkaXRQcm9ncmFtVGFiOyJdLCJmaWxlIjoiRDovU21hcnQtRW50cmFuY2UtRXhpdC1hbmQtQXR0ZW5kYW5jZS1Nb25pdG9yaW5nLVN5c3RlbS9tb2R1bGUxL3BscC1zdHVkZW50LW1vbml0b3Jpbmcvc3JjL3BhZ2VzL3N1cGVyYWRtaW5wYWdlcy9TeXN0ZW1TZXR0aW5ncy9FZGl0UHJvZ3JhbVRhYi5qc3gifQ==

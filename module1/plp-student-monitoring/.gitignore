@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Electron Cache
+electron-cache/
+*/electron-cache/*
+*/Cache_Data/*
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+

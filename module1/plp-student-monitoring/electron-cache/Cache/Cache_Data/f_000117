@@ -1,0 +1,992 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=f2d246ea"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$(), _s2 = $RefreshSig$();
+import __vite__cjsImport1_react from "/node_modules/.vite/deps/react.js?v=f2d246ea"; const React = __vite__cjsImport1_react.__esModule ? __vite__cjsImport1_react.default : __vite__cjsImport1_react; const useState = __vite__cjsImport1_react["useState"]; const useEffect = __vite__cjsImport1_react["useEffect"];
+import "/src/css/GeneralSettings.css";
+import LogoSettings from "/src/pages/superadminpages/SystemSettings/LogoSettings.jsx";
+import Swal from "/node_modules/.vite/deps/sweetalert2.js?v=1b208f3f";
+function GateSettingsSection() {
+  _s();
+  const [form, setForm] = useState({
+    gate_entry_start: "06:00",
+    gate_entry_end: "21:00",
+    gate_exit_start: "06:00",
+    gate_exit_end: "23:00",
+    block_outside_window: "true"
+  });
+  const [gateStatus, setGateStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [settRes, statusRes] = await Promise.all(
+          [
+            fetch("/api/settings"),
+            fetch("/api/settings/gate-status")
+          ]
+        );
+        const settings = await settRes.json();
+        const status = await statusRes.json();
+        setForm({
+          gate_entry_start: settings.gate_entry_start || "06:00",
+          gate_entry_end: settings.gate_entry_end || "21:00",
+          gate_exit_start: settings.gate_exit_start || "06:00",
+          gate_exit_end: settings.gate_exit_end || "23:00",
+          block_outside_window: settings.block_outside_window || "true"
+        });
+        setGateStatus(status);
+      } catch (err) {
+        console.error("[GateSettings] load error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    const interval = setInterval(() => {
+      fetch("/api/settings/gate-status").then((r) => r.json()).then(setGateStatus).catch(console.error);
+    }, 6e4);
+    return () => clearInterval(interval);
+  }, []);
+  const handleSave = async () => {
+    if (form.gate_entry_end <= form.gate_entry_start) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid Entry Window",
+        text: "Entry end time must be after start time.",
+        confirmButtonText: "OK"
+      });
+      return;
+    }
+    if (form.gate_exit_end <= form.gate_exit_start) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid Exit Window",
+        text: "Exit end time must be after start time.",
+        confirmButtonText: "OK"
+      });
+      return;
+    }
+    try {
+      setSaving(true);
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      const statusRes = await fetch("/api/settings/gate-status");
+      setGateStatus(await statusRes.json());
+      Swal.fire({
+        icon: "success",
+        title: "Gate Settings Saved",
+        timer: 2e3,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Save Failed", text: err.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+  if (loading) return /* @__PURE__ */ jsxDEV("div", { className: "loading-state", children: "Loading gate settings…" }, void 0, false, {
+    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+    lineNumber: 96,
+    columnNumber: 23
+  }, this);
+  return /* @__PURE__ */ jsxDEV("div", { className: "settings-section gate-settings-section", children: [
+    /* @__PURE__ */ jsxDEV("h2", { className: "section-title", children: "GATE SETTINGS" }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 100,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("p", { className: "setting-description", style: { marginBottom: 16 }, children: "Define the allowed time windows for student entry and exit. Outside these windows the system can block or warn attempted scans." }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 101,
+      columnNumber: 7
+    }, this),
+    gateStatus && /* @__PURE__ */ jsxDEV("div", { className: "gate-status-bar", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: `gate-status-item ${gateStatus.entryOpen ? "open" : "closed"}`, children: [
+        /* @__PURE__ */ jsxDEV("span", { className: "gate-dot" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 110,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { children: [
+          "Entry Gate: ",
+          /* @__PURE__ */ jsxDEV("strong", { children: gateStatus.entryOpen ? "OPEN" : "CLOSED" }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 111,
+            columnNumber: 31
+          }, this)
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 111,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "gate-window", children: [
+          "(",
+          gateStatus.entryWindow,
+          ")"
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 112,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 109,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: `gate-status-item ${gateStatus.exitOpen ? "open" : "closed"}`, children: [
+        /* @__PURE__ */ jsxDEV("span", { className: "gate-dot" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 115,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { children: [
+          "Exit Gate: ",
+          /* @__PURE__ */ jsxDEV("strong", { children: gateStatus.exitOpen ? "OPEN" : "CLOSED" }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 116,
+            columnNumber: 30
+          }, this)
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 116,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "gate-window", children: [
+          "(",
+          gateStatus.exitWindow,
+          ")"
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 117,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 114,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "gate-current-time", children: [
+        "Current time: ",
+        /* @__PURE__ */ jsxDEV("strong", { children: gateStatus.currentTime }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 120,
+          columnNumber: 27
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 119,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 108,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "setting-item", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-info", children: [
+        /* @__PURE__ */ jsxDEV("label", { className: "setting-label", children: "CAMPUS ENTRY WINDOW" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 128,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "setting-description", children: "Allowed time range for student entry" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 129,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 127,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-control", children: /* @__PURE__ */ jsxDEV("div", { className: "time-range", children: [
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "time",
+            className: "time-input",
+            value: form.gate_entry_start,
+            onChange: (e) => setForm((p) => ({ ...p, gate_entry_start: e.target.value }))
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 133,
+            columnNumber: 13
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV("span", { className: "time-separator", children: "to" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 136,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "time",
+            className: "time-input",
+            value: form.gate_entry_end,
+            onChange: (e) => setForm((p) => ({ ...p, gate_entry_end: e.target.value }))
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 137,
+            columnNumber: 13
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 132,
+        columnNumber: 11
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 131,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 126,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "setting-item", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-info", children: [
+        /* @__PURE__ */ jsxDEV("label", { className: "setting-label", children: "CAMPUS EXIT WINDOW" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 147,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "setting-description", children: "Allowed time range for student exit" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 148,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 146,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-control", children: /* @__PURE__ */ jsxDEV("div", { className: "time-range", children: [
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "time",
+            className: "time-input",
+            value: form.gate_exit_start,
+            onChange: (e) => setForm((p) => ({ ...p, gate_exit_start: e.target.value }))
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 152,
+            columnNumber: 13
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV("span", { className: "time-separator", children: "to" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 155,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "time",
+            className: "time-input",
+            value: form.gate_exit_end,
+            onChange: (e) => setForm((p) => ({ ...p, gate_exit_end: e.target.value }))
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 156,
+            columnNumber: 13
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 151,
+        columnNumber: 11
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 150,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 145,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "setting-item checkbox-item", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-info", children: [
+        /* @__PURE__ */ jsxDEV("label", { className: "setting-label", children: "Block Scans Outside Window" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 166,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "setting-description", children: "When enabled, scans attempted outside the windows are rejected. When disabled, they are allowed but flagged." }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 167,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 165,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-control", children: /* @__PURE__ */ jsxDEV("label", { className: "switch", children: [
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "checkbox",
+            checked: form.block_outside_window === "true",
+            onChange: (e) => setForm((p) => ({
+              ...p,
+              block_outside_window: e.target.checked ? "true" : "false"
+            }))
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 174,
+            columnNumber: 13
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV("span", { className: "slider round" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 179,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 173,
+        columnNumber: 11
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 172,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 164,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "save-settings", children: /* @__PURE__ */ jsxDEV("button", { className: "save-button", onClick: handleSave, disabled: saving, children: saving ? "Saving…" : "SAVE GATE SETTINGS" }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 185,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 184,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+    lineNumber: 99,
+    columnNumber: 5
+  }, this);
+}
+_s(GateSettingsSection, "aRLHbLCjlIK/VS1YUQRFWn+IqIk=");
+_c = GateSettingsSection;
+function AcademicYearSection() {
+  _s2();
+  const [form, setForm] = useState({
+    school_year_start: "2025",
+    school_year_end: "2026",
+    semester: "1",
+    sem1_start: "2025-08-01",
+    sem1_end: "2025-12-31",
+    sem2_start: "2026-01-01",
+    sem2_end: "2026-05-31"
+  });
+  const [academicInfo, setAcademicInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [promoting, setPromoting] = useState(false);
+  const formatToDMY = (dateStr) => {
+    if (!dateStr) return "—";
+    const [year, month, day] = dateStr.split("-");
+    return `${day}/${month}/${year}`;
+  };
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [settRes, acadRes] = await Promise.all(
+          [
+            fetch("/api/settings"),
+            fetch("/api/settings/academic-year")
+          ]
+        );
+        const settings = await settRes.json();
+        const acad = await acadRes.json();
+        setForm({
+          school_year_start: settings.school_year_start || "2025",
+          school_year_end: settings.school_year_end || "2026",
+          semester: settings.semester || "1",
+          sem1_start: settings.sem1_start || "2025-08-01",
+          sem1_end: settings.sem1_end || "2025-12-31",
+          sem2_start: settings.sem2_start || "2026-01-01",
+          sem2_end: settings.sem2_end || "2026-05-31"
+        });
+        setAcademicInfo(acad);
+      } catch (err) {
+        console.error("[AcademicYear] load error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+  const handleYearStartChange = (e) => {
+    const start = e.target.value;
+    setForm((p) => ({ ...p, school_year_start: start, school_year_end: String(parseInt(start) + 1) }));
+  };
+  const handleSave = async () => {
+    if (form.sem1_end <= form.sem1_start) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid 1st Semester",
+        text: "End date must be after start date.",
+        confirmButtonText: "OK"
+      });
+      return;
+    }
+    if (form.sem2_end <= form.sem2_start) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid 2nd Semester",
+        text: "End date must be after start date.",
+        confirmButtonText: "OK"
+      });
+      return;
+    }
+    try {
+      setSaving(true);
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      const acadRes = await fetch("/api/settings/academic-year");
+      setAcademicInfo(await acadRes.json());
+      Swal.fire({
+        icon: "success",
+        title: "Academic Year Saved",
+        timer: 2e3,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Save Failed", text: err.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+  const handlePromote = async () => {
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Promote Students?",
+      html: `
+        <p>This will:</p>
+        <ul style="text-align:left;margin:8px 0;">
+          <li>Increment year level for all <strong>Regular</strong> students (Year 1–3)</li>
+          <li><strong>4th-year Regular</strong> students will be <strong>ARCHIVED as Graduated</strong></li>
+          <li>Leave Irregular, LOA, Dropout, etc. <strong>unchanged</strong></li>
+        </ul>
+        <p><strong>This action cannot be undone.</strong></p>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Yes, Promote",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#01311d"
+    });
+    if (!result.isConfirmed) return;
+    try {
+      setPromoting(true);
+      const res = await fetch("/api/settings/promote-students", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      const acadRes = await fetch("/api/settings/academic-year");
+      setAcademicInfo(await acadRes.json());
+      Swal.fire({
+        icon: "success",
+        title: "Promotion Complete",
+        html: `<p><strong>${data.promoted}</strong> students promoted to next year level.<br/>
+                <strong>${data.graduated}</strong> 4th-year students graduated and archived.</p>`,
+        confirmButtonText: "Done"
+      });
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Promotion Failed", text: err.message });
+    } finally {
+      setPromoting(false);
+    }
+  };
+  if (loading) return /* @__PURE__ */ jsxDEV("div", { className: "loading-state", children: "Loading academic year settings…" }, void 0, false, {
+    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+    lineNumber: 331,
+    columnNumber: 23
+  }, this);
+  return /* @__PURE__ */ jsxDEV("div", { className: "settings-section academic-settings-section", children: [
+    /* @__PURE__ */ jsxDEV("h2", { className: "section-title", children: "ACADEMIC YEAR SETTINGS" }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 335,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("p", { className: "setting-description", style: { marginBottom: 16 }, children: "Set the current school year and semester dates. The system auto-detects the active semester from today's date." }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 336,
+      columnNumber: 7
+    }, this),
+    academicInfo && /* @__PURE__ */ jsxDEV("div", { className: "academic-status-banner", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "academic-status-item", children: [
+        /* @__PURE__ */ jsxDEV("span", { className: "academic-label", children: "School Year" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 345,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "academic-value", children: academicInfo.schoolYear }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 346,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 344,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "academic-status-divider" }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 348,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "academic-status-item", children: [
+        /* @__PURE__ */ jsxDEV("span", { className: "academic-label", children: "Active Semester" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 350,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "academic-value", children: academicInfo.detectedSemester === "Break" ? "Semester Break" : `${academicInfo.detectedSemester === "1" ? "1st" : "2nd"} Semester` }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 351,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 349,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "academic-status-divider" }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 357,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "academic-status-item", children: [
+        /* @__PURE__ */ jsxDEV("span", { className: "academic-label", children: "Today" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 359,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "academic-value", children: formatToDMY(academicInfo.today) }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 360,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 358,
+        columnNumber: 11
+      }, this),
+      academicInfo.promotionDue && /* @__PURE__ */ jsxDEV("div", { className: "promotion-warning", children: "⚠️ School year has ended — student promotion is due." }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 363,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 343,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "setting-item", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-info", children: [
+        /* @__PURE__ */ jsxDEV("label", { className: "setting-label", children: "School Year" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 373,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "setting-description", children: "Academic year range (e.g. 2025–2026)" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 374,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 372,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-control", children: /* @__PURE__ */ jsxDEV("div", { className: "time-range", children: [
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "number",
+            min: "2020",
+            max: "2099",
+            className: "time-input",
+            style: { width: 90 },
+            value: form.school_year_start,
+            onChange: handleYearStartChange
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 378,
+            columnNumber: 13
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV("span", { className: "time-separator", children: "–" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 385,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "number",
+            className: "time-input",
+            style: { width: 90, opacity: 0.6, background: "#f5f5f5" },
+            value: form.school_year_end,
+            disabled: true
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 386,
+            columnNumber: 13
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 377,
+        columnNumber: 11
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 376,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 371,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "setting-item", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-info", children: [
+        /* @__PURE__ */ jsxDEV("label", { className: "setting-label", children: [
+          "1st Semester",
+          academicInfo?.detectedSemester === "1" && /* @__PURE__ */ jsxDEV("span", { className: "semester-active-badge", children: " ● Active" }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 402,
+            columnNumber: 13
+          }, this)
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 399,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "setting-description", children: "Start and end dates for the 1st semester" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 405,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 398,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-control", children: /* @__PURE__ */ jsxDEV("div", { className: "time-range", children: [
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "date",
+            className: "time-input",
+            value: form.sem1_start,
+            onChange: (e) => setForm((p) => ({ ...p, sem1_start: e.target.value }))
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 409,
+            columnNumber: 13
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV("span", { className: "time-separator", children: "to" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 412,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "date",
+            className: "time-input",
+            value: form.sem1_end,
+            onChange: (e) => setForm((p) => ({ ...p, sem1_end: e.target.value }))
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 413,
+            columnNumber: 13
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 408,
+        columnNumber: 11
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 407,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 397,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "setting-item", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-info", children: [
+        /* @__PURE__ */ jsxDEV("label", { className: "setting-label", children: [
+          "2nd Semester",
+          academicInfo?.detectedSemester === "2" && /* @__PURE__ */ jsxDEV("span", { className: "semester-active-badge", children: " ● Active" }, void 0, false, {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 426,
+            columnNumber: 13
+          }, this)
+        ] }, void 0, true, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 423,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "setting-description", children: "Start and end dates for the 2nd semester" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 429,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 422,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "setting-control", children: /* @__PURE__ */ jsxDEV("div", { className: "time-range", children: [
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "date",
+            className: "time-input",
+            value: form.sem2_start,
+            onChange: (e) => setForm((p) => ({ ...p, sem2_start: e.target.value }))
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 433,
+            columnNumber: 13
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV("span", { className: "time-separator", children: "to" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 436,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV(
+          "input",
+          {
+            type: "date",
+            className: "time-input",
+            value: form.sem2_end,
+            onChange: (e) => setForm((p) => ({ ...p, sem2_end: e.target.value }))
+          },
+          void 0,
+          false,
+          {
+            fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+            lineNumber: 437,
+            columnNumber: 13
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 432,
+        columnNumber: 11
+      }, this) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 431,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 421,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "save-settings", children: /* @__PURE__ */ jsxDEV("button", { className: "save-button", onClick: handleSave, disabled: saving, children: saving ? "Saving…" : "SAVE ACADEMIC YEAR SETTINGS" }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 445,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 444,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "settings-section", style: { marginTop: 28, paddingTop: 20, borderTop: "1px solid #e9ecef", marginBottom: "20px" }, children: [
+      /* @__PURE__ */ jsxDEV("h2", { className: "section-title", children: "YEAR LEVEL PROMOTION" }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 452,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("p", { className: "setting-description", style: { marginBottom: 12 }, children: [
+        "Run at the end of the school year. Regular students advance one year level; 4th-year Regular students are automatically marked as ",
+        /* @__PURE__ */ jsxDEV("strong", { children: "Graduated" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 455,
+          columnNumber: 65
+        }, this),
+        ". Irregular, LOA, Dropout and other statuses are ",
+        /* @__PURE__ */ jsxDEV("strong", { children: "not affected" }, void 0, false, {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 456,
+          columnNumber: 58
+        }, this),
+        "."
+      ] }, void 0, true, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 453,
+        columnNumber: 9
+      }, this),
+      academicInfo?.promotionDue && /* @__PURE__ */ jsxDEV("div", { className: "promotion-due-alert", children: "⚠️ The 2nd semester has ended. Student promotion is recommended." }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 460,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "save-settings", children: /* @__PURE__ */ jsxDEV(
+        "button",
+        {
+          className: "save-button",
+          style: { background: "linear-gradient(135deg, #3b6da6, #0d47a1)", marginBottom: "10px" },
+          onClick: handlePromote,
+          disabled: promoting,
+          children: promoting ? "Promoting…" : "Promote Regular Students"
+        },
+        void 0,
+        false,
+        {
+          fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+          lineNumber: 466,
+          columnNumber: 11
+        },
+        this
+      ) }, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 465,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 451,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+    lineNumber: 334,
+    columnNumber: 5
+  }, this);
+}
+_s2(AcademicYearSection, "zMaDkv1yGEGXgG76ELQbQx5ZSC8=");
+_c2 = AcademicYearSection;
+function GeneralSettings() {
+  return /* @__PURE__ */ jsxDEV("div", { className: "general-settings-page", children: [
+    /* @__PURE__ */ jsxDEV("div", { className: "general-settings-row top-row", children: [
+      /* @__PURE__ */ jsxDEV(GateSettingsSection, {}, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 488,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV(AcademicYearSection, {}, void 0, false, {
+        fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+        lineNumber: 489,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 487,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "general-settings-row bottom-row", children: /* @__PURE__ */ jsxDEV(LogoSettings, {}, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 492,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+      lineNumber: 491,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx",
+    lineNumber: 486,
+    columnNumber: 5
+  }, this);
+}
+_c3 = GeneralSettings;
+export default GeneralSettings;
+var _c, _c2, _c3;
+$RefreshReg$(_c, "GateSettingsSection");
+$RefreshReg$(_c2, "AcademicYearSection");
+$RefreshReg$(_c3, "GeneralSettings");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "D:/Smart-Entrance-Exit-and-Attendance-Monitoring-System/module1/plp-student-monitoring/src/pages/superadminpages/SystemSettings/GeneralSettings.jsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QkFDYjtBQUFBLDJCQUFDLFNBQUksV0FBVSxnQ0FDYjtBQUFBLDZCQUFDLHlCQUFEO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUFBb0I7QUFBQSxNQUNwQix1QkFBQyx5QkFBRDtBQUFBO0FBQUE7QUFBQTtBQUFBLGFBQW9CO0FBQUEsU0FGdEI7QUFBQTtBQUFBO0FBQUE7QUFBQSxXQUdBO0FBQUEsSUFDQSx1QkFBQyxTQUFJLFdBQVUsbUNBQ2IsaUNBQUMsa0JBQUQ7QUFBQTtBQUFBO0FBQUE7QUFBQSxXQUFhLEtBRGY7QUFBQTtBQUFBO0FBQUE7QUFBQSxXQUVBO0FBQUEsT0FQRjtBQUFBO0FBQUE7QUFBQTtBQUFBLFNBUUE7QUFFSjtBQUFDQyxNQVpRRDtBQWNULGVBQWVBO0FBQWdCLElBQUFFLElBQUFDLEtBQUFGO0FBQUEsYUFBQUMsSUFBQTtBQUFBLGFBQUFDLEtBQUE7QUFBQSxhQUFBRixLQUFBIiwibmFtZXMiOlsiUmVhY3QiLCJ1c2VTdGF0ZSIsInVzZUVmZmVjdCIsIkxvZ29TZXR0aW5ncyIsIlN3YWwiLCJHYXRlU2V0dGluZ3NTZWN0aW9uIiwiX3MiLCJmb3JtIiwic2V0Rm9ybSIsImdhdGVfZW50cnlfc3RhcnQiLCJnYXRlX2VudHJ5X2VuZCIsImdhdGVfZXhpdF9zdGFydCIsImdhdGVfZXhpdF9lbmQiLCJibG9ja19vdXRzaWRlX3dpbmRvdyIsImdhdGVTdGF0dXMiLCJzZXRHYXRlU3RhdHVzIiwibG9hZGluZyIsInNldExvYWRpbmciLCJzYXZpbmciLCJzZXRTYXZpbmciLCJsb2FkIiwic2V0dFJlcyIsInN0YXR1c1JlcyIsIlByb21pc2UiLCJhbGwiLCJmZXRjaCIsInNldHRpbmdzIiwianNvbiIsInN0YXR1cyIsImVyciIsImNvbnNvbGUiLCJlcnJvciIsImludGVydmFsIiwic2V0SW50ZXJ2YWwiLCJ0aGVuIiwiciIsImNhdGNoIiwiY2xlYXJJbnRlcnZhbCIsImhhbmRsZVNhdmUiLCJmaXJlIiwiaWNvbiIsInRpdGxlIiwidGV4dCIsImNvbmZpcm1CdXR0b25UZXh0IiwicmVzIiwibWV0aG9kIiwiaGVhZGVycyIsImJvZHkiLCJKU09OIiwic3RyaW5naWZ5IiwiZGF0YSIsIm9rIiwiRXJyb3IiLCJtZXNzYWdlIiwidGltZXIiLCJzaG93Q29uZmlybUJ1dHRvbiIsIm1hcmdpbkJvdHRvbSIsImVudHJ5T3BlbiIsImVudHJ5V2luZG93IiwiZXhpdE9wZW4iLCJleGl0V2luZG93IiwiY3VycmVudFRpbWUiLCJlIiwicCIsInRhcmdldCIsInZhbHVlIiwiY2hlY2tlZCIsIkFjYWRlbWljWWVhclNlY3Rpb24iLCJfczIiLCJzY2hvb2xfeWVhcl9zdGFydCIsInNjaG9vbF95ZWFyX2VuZCIsInNlbWVzdGVyIiwic2VtMV9zdGFydCIsInNlbTFfZW5kIiwic2VtMl9zdGFydCIsInNlbTJfZW5kIiwiYWNhZGVtaWNJbmZvIiwic2V0QWNhZGVtaWNJbmZvIiwicHJvbW90aW5nIiwic2V0UHJvbW90aW5nIiwiZm9ybWF0VG9ETVkiLCJkYXRlU3RyIiwieWVhciIsIm1vbnRoIiwiZGF5Iiwic3BsaXQiLCJhY2FkUmVzIiwiYWNhZCIsImhhbmRsZVllYXJTdGFydENoYW5nZSIsInN0YXJ0IiwiU3RyaW5nIiwicGFyc2VJbnQiLCJoYW5kbGVQcm9tb3RlIiwicmVzdWx0IiwiaHRtbCIsInNob3dDYW5jZWxCdXR0b24iLCJjYW5jZWxCdXR0b25UZXh0IiwiY29uZmlybUJ1dHRvbkNvbG9yIiwiaXNDb25maXJtZWQiLCJwcm9tb3RlZCIsImdyYWR1YXRlZCIsInNjaG9vbFllYXIiLCJkZXRlY3RlZFNlbWVzdGVyIiwidG9kYXkiLCJwcm9tb3Rpb25EdWUiLCJ3aWR0aCIsIm9wYWNpdHkiLCJiYWNrZ3JvdW5kIiwibWFyZ2luVG9wIiwicGFkZGluZ1RvcCIsImJvcmRlclRvcCIsIkdlbmVyYWxTZXR0aW5ncyIsIl9jMyIsIl9jIiwiX2MyIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIkdlbmVyYWxTZXR0aW5ncy5qc3giXSwic291cmNlc0NvbnRlbnQiOlsiLy8gR2VuZXJhbFNldHRpbmdzLmpzeFxyXG4vLyBDb21iaW5lcyBHYXRlIFNldHRpbmdzICsgQWNhZGVtaWMgWWVhciBTZXR0aW5ncyBzaWRlIGJ5IHNpZGVcclxuaW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QgfSBmcm9tICdyZWFjdCc7XHJcbmltcG9ydCBcIi4uLy4uLy4uL2Nzcy9HZW5lcmFsU2V0dGluZ3MuY3NzXCI7XHJcbmltcG9ydCBMb2dvU2V0dGluZ3MgZnJvbSAnLi9Mb2dvU2V0dGluZ3MnO1xyXG5pbXBvcnQgU3dhbCBmcm9tICdzd2VldGFsZXJ0Mic7XHJcblxyXG4vLyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIBcclxuLy8gR0FURSBTRVRUSU5HUyBTRUNUSU9OIFxyXG4vLyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIBcclxuXHJcbmZ1bmN0aW9uIEdhdGVTZXR0aW5nc1NlY3Rpb24oKSB7XHJcbiAgY29uc3QgW2Zvcm0sIHNldEZvcm1dID0gdXNlU3RhdGUoe1xyXG4gICAgZ2F0ZV9lbnRyeV9zdGFydDogICAgICcwNjowMCcsXHJcbiAgICBnYXRlX2VudHJ5X2VuZDogICAgICAgJzIxOjAwJyxcclxuICAgIGdhdGVfZXhpdF9zdGFydDogICAgICAnMDY6MDAnLFxyXG4gICAgZ2F0ZV9leGl0X2VuZDogICAgICAgICcyMzowMCcsXHJcbiAgICBibG9ja19vdXRzaWRlX3dpbmRvdzogJ3RydWUnLFxyXG4gIH0pO1xyXG4gIGNvbnN0IFtnYXRlU3RhdHVzLCBzZXRHYXRlU3RhdHVzXSA9IHVzZVN0YXRlKG51bGwpO1xyXG4gIGNvbnN0IFtsb2FkaW5nLCAgICBzZXRMb2FkaW5nXSAgICA9IHVzZVN0YXRlKHRydWUpO1xyXG4gIGNvbnN0IFtzYXZpbmcsICAgICBzZXRTYXZpbmddICAgICA9IHVzZVN0YXRlKGZhbHNlKTtcclxuXHJcbiAgLy8g4pSA4pSAIExvYWQg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAXHJcbiAgdXNlRWZmZWN0KCgpID0+IHtcclxuICAgIGNvbnN0IGxvYWQgPSBhc3luYyAoKSA9PiB7XHJcbiAgICAgIHRyeSB7XHJcbiAgICAgICAgY29uc3QgW3NldHRSZXMsIHN0YXR1c1Jlc10gPSBhd2FpdCBQcm9taXNlLmFsbChbXHJcbiAgICAgICAgICBmZXRjaCgnL2FwaS9zZXR0aW5ncycpLFxyXG4gICAgICAgICAgZmV0Y2goJy9hcGkvc2V0dGluZ3MvZ2F0ZS1zdGF0dXMnKSxcclxuICAgICAgICBdKTtcclxuICAgICAgICBjb25zdCBzZXR0aW5ncyA9IGF3YWl0IHNldHRSZXMuanNvbigpO1xyXG4gICAgICAgIGNvbnN0IHN0YXR1cyAgID0gYXdhaXQgc3RhdHVzUmVzLmpzb24oKTtcclxuXHJcbiAgICAgICAgc2V0Rm9ybSh7XHJcbiAgICAgICAgICBnYXRlX2VudHJ5X3N0YXJ0OiAgICAgc2V0dGluZ3MuZ2F0ZV9lbnRyeV9zdGFydCAgICB8fCAnMDY6MDAnLFxyXG4gICAgICAgICAgZ2F0ZV9lbnRyeV9lbmQ6ICAgICAgIHNldHRpbmdzLmdhdGVfZW50cnlfZW5kICAgICAgfHwgJzIxOjAwJyxcclxuICAgICAgICAgIGdhdGVfZXhpdF9zdGFydDogICAgICBzZXR0aW5ncy5nYXRlX2V4aXRfc3RhcnQgICAgIHx8ICcwNjowMCcsXHJcbiAgICAgICAgICBnYXRlX2V4aXRfZW5kOiAgICAgICAgc2V0dGluZ3MuZ2F0ZV9leGl0X2VuZCAgICAgICB8fCAnMjM6MDAnLFxyXG4gICAgICAgICAgYmxvY2tfb3V0c2lkZV93aW5kb3c6IHNldHRpbmdzLmJsb2NrX291dHNpZGVfd2luZG93IHx8ICd0cnVlJyxcclxuICAgICAgICB9KTtcclxuICAgICAgICBzZXRHYXRlU3RhdHVzKHN0YXR1cyk7XHJcbiAgICAgIH0gY2F0Y2ggKGVycikge1xyXG4gICAgICAgIGNvbnNvbGUuZXJyb3IoJ1tHYXRlU2V0dGluZ3NdIGxvYWQgZXJyb3I6JywgZXJyKTtcclxuICAgICAgfSBmaW5hbGx5IHtcclxuICAgICAgICBzZXRMb2FkaW5nKGZhbHNlKTtcclxuICAgICAgfVxyXG4gICAgfTtcclxuXHJcbiAgICBsb2FkKCk7XHJcblxyXG4gICAgY29uc3QgaW50ZXJ2YWwgPSBzZXRJbnRlcnZhbCgoKSA9PiB7XHJcbiAgICAgIGZldGNoKCcvYXBpL3NldHRpbmdzL2dhdGUtc3RhdHVzJylcclxuICAgICAgICAudGhlbihyID0+IHIuanNvbigpKVxyXG4gICAgICAgIC50aGVuKHNldEdhdGVTdGF0dXMpXHJcbiAgICAgICAgLmNhdGNoKGNvbnNvbGUuZXJyb3IpO1xyXG4gICAgfSwgNjBfMDAwKTtcclxuICAgIHJldHVybiAoKSA9PiBjbGVhckludGVydmFsKGludGVydmFsKTtcclxuICB9LCBbXSk7XHJcblxyXG4gIC8vIOKUgOKUgCBTYXZlIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgFxyXG4gIGNvbnN0IGhhbmRsZVNhdmUgPSBhc3luYyAoKSA9PiB7XHJcbiAgICBpZiAoZm9ybS5nYXRlX2VudHJ5X2VuZCA8PSBmb3JtLmdhdGVfZW50cnlfc3RhcnQpIHtcclxuICAgICAgU3dhbC5maXJlKHsgaWNvbjogJ3dhcm5pbmcnLCB0aXRsZTogJ0ludmFsaWQgRW50cnkgV2luZG93JyxcclxuICAgICAgICB0ZXh0OiAnRW50cnkgZW5kIHRpbWUgbXVzdCBiZSBhZnRlciBzdGFydCB0aW1lLicsIGNvbmZpcm1CdXR0b25UZXh0OiAnT0snIH0pO1xyXG4gICAgICByZXR1cm47XHJcbiAgICB9XHJcbiAgICBpZiAoZm9ybS5nYXRlX2V4aXRfZW5kIDw9IGZvcm0uZ2F0ZV9leGl0X3N0YXJ0KSB7XHJcbiAgICAgIFN3YWwuZmlyZSh7IGljb246ICd3YXJuaW5nJywgdGl0bGU6ICdJbnZhbGlkIEV4aXQgV2luZG93JyxcclxuICAgICAgICB0ZXh0OiAnRXhpdCBlbmQgdGltZSBtdXN0IGJlIGFmdGVyIHN0YXJ0IHRpbWUuJywgY29uZmlybUJ1dHRvblRleHQ6ICdPSycgfSk7XHJcbiAgICAgIHJldHVybjtcclxuICAgIH1cclxuXHJcbiAgICB0cnkge1xyXG4gICAgICBzZXRTYXZpbmcodHJ1ZSk7XHJcbiAgICAgIGNvbnN0IHJlcyAgPSBhd2FpdCBmZXRjaCgnL2FwaS9zZXR0aW5ncycsIHtcclxuICAgICAgICBtZXRob2Q6ICAnUFVUJyxcclxuICAgICAgICBoZWFkZXJzOiB7ICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbicgfSxcclxuICAgICAgICBib2R5OiAgICBKU09OLnN0cmluZ2lmeShmb3JtKSxcclxuICAgICAgfSk7XHJcbiAgICAgIGNvbnN0IGRhdGEgPSBhd2FpdCByZXMuanNvbigpO1xyXG4gICAgICBpZiAoIXJlcy5vaykgdGhyb3cgbmV3IEVycm9yKGRhdGEubWVzc2FnZSk7XHJcblxyXG4gICAgICBjb25zdCBzdGF0dXNSZXMgPSBhd2FpdCBmZXRjaCgnL2FwaS9zZXR0aW5ncy9nYXRlLXN0YXR1cycpO1xyXG4gICAgICBzZXRHYXRlU3RhdHVzKGF3YWl0IHN0YXR1c1Jlcy5qc29uKCkpO1xyXG5cclxuICAgICAgU3dhbC5maXJlKHsgaWNvbjogJ3N1Y2Nlc3MnLCB0aXRsZTogJ0dhdGUgU2V0dGluZ3MgU2F2ZWQnLFxyXG4gICAgICAgIHRpbWVyOiAyMDAwLCBzaG93Q29uZmlybUJ1dHRvbjogZmFsc2UgfSk7XHJcbiAgICB9IGNhdGNoIChlcnIpIHtcclxuICAgICAgU3dhbC5maXJlKHsgaWNvbjogJ2Vycm9yJywgdGl0bGU6ICdTYXZlIEZhaWxlZCcsIHRleHQ6IGVyci5tZXNzYWdlIH0pO1xyXG4gICAgfSBmaW5hbGx5IHtcclxuICAgICAgc2V0U2F2aW5nKGZhbHNlKTtcclxuICAgIH1cclxuICB9O1xyXG5cclxuICBpZiAobG9hZGluZykgcmV0dXJuIDxkaXYgY2xhc3NOYW1lPVwibG9hZGluZy1zdGF0ZVwiPkxvYWRpbmcgZ2F0ZSBzZXR0aW5nc+KApjwvZGl2PjtcclxuXHJcbiAgcmV0dXJuIChcclxuICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZ3Mtc2VjdGlvbiBnYXRlLXNldHRpbmdzLXNlY3Rpb25cIj5cclxuICAgICAgPGgyIGNsYXNzTmFtZT1cInNlY3Rpb24tdGl0bGVcIj5HQVRFIFNFVFRJTkdTPC9oMj5cclxuICAgICAgPHAgY2xhc3NOYW1lPVwic2V0dGluZy1kZXNjcmlwdGlvblwiIHN0eWxlPXt7IG1hcmdpbkJvdHRvbTogMTYgfX0+XHJcbiAgICAgICAgRGVmaW5lIHRoZSBhbGxvd2VkIHRpbWUgd2luZG93cyBmb3Igc3R1ZGVudCBlbnRyeSBhbmQgZXhpdC4gT3V0c2lkZSB0aGVzZVxyXG4gICAgICAgIHdpbmRvd3MgdGhlIHN5c3RlbSBjYW4gYmxvY2sgb3Igd2FybiBhdHRlbXB0ZWQgc2NhbnMuXHJcbiAgICAgIDwvcD5cclxuXHJcbiAgICAgIHsvKiDilIDilIAgTGl2ZSBzdGF0dXMgYmFyIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqL31cclxuICAgICAge2dhdGVTdGF0dXMgJiYgKFxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ2F0ZS1zdGF0dXMtYmFyXCI+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT17YGdhdGUtc3RhdHVzLWl0ZW0gJHtnYXRlU3RhdHVzLmVudHJ5T3BlbiA/ICdvcGVuJyA6ICdjbG9zZWQnfWB9PlxyXG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJnYXRlLWRvdFwiIC8+XHJcbiAgICAgICAgICAgIDxzcGFuPkVudHJ5IEdhdGU6IDxzdHJvbmc+e2dhdGVTdGF0dXMuZW50cnlPcGVuID8gJ09QRU4nIDogJ0NMT1NFRCd9PC9zdHJvbmc+PC9zcGFuPlxyXG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJnYXRlLXdpbmRvd1wiPih7Z2F0ZVN0YXR1cy5lbnRyeVdpbmRvd30pPC9zcGFuPlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT17YGdhdGUtc3RhdHVzLWl0ZW0gJHtnYXRlU3RhdHVzLmV4aXRPcGVuID8gJ29wZW4nIDogJ2Nsb3NlZCd9YH0+XHJcbiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImdhdGUtZG90XCIgLz5cclxuICAgICAgICAgICAgPHNwYW4+RXhpdCBHYXRlOiA8c3Ryb25nPntnYXRlU3RhdHVzLmV4aXRPcGVuID8gJ09QRU4nIDogJ0NMT1NFRCd9PC9zdHJvbmc+PC9zcGFuPlxyXG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJnYXRlLXdpbmRvd1wiPih7Z2F0ZVN0YXR1cy5leGl0V2luZG93fSk8L3NwYW4+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ2F0ZS1jdXJyZW50LXRpbWVcIj5cclxuICAgICAgICAgICAgQ3VycmVudCB0aW1lOiA8c3Ryb25nPntnYXRlU3RhdHVzLmN1cnJlbnRUaW1lfTwvc3Ryb25nPlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgPC9kaXY+XHJcbiAgICAgICl9XHJcblxyXG4gICAgICB7Lyog4pSA4pSAIEVudHJ5IHdpbmRvdyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99XHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZy1pdGVtXCI+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzZXR0aW5nLWluZm9cIj5cclxuICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJzZXR0aW5nLWxhYmVsXCI+Q0FNUFVTIEVOVFJZIFdJTkRPVzwvbGFiZWw+XHJcbiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJzZXR0aW5nLWRlc2NyaXB0aW9uXCI+QWxsb3dlZCB0aW1lIHJhbmdlIGZvciBzdHVkZW50IGVudHJ5PC9zcGFuPlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZy1jb250cm9sXCI+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRpbWUtcmFuZ2VcIj5cclxuICAgICAgICAgICAgPGlucHV0IHR5cGU9XCJ0aW1lXCIgY2xhc3NOYW1lPVwidGltZS1pbnB1dFwiXHJcbiAgICAgICAgICAgICAgdmFsdWU9e2Zvcm0uZ2F0ZV9lbnRyeV9zdGFydH1cclxuICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtKHAgPT4gKHsgLi4ucCwgZ2F0ZV9lbnRyeV9zdGFydDogZS50YXJnZXQudmFsdWUgfSkpfSAvPlxyXG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0aW1lLXNlcGFyYXRvclwiPnRvPC9zcGFuPlxyXG4gICAgICAgICAgICA8aW5wdXQgdHlwZT1cInRpbWVcIiBjbGFzc05hbWU9XCJ0aW1lLWlucHV0XCJcclxuICAgICAgICAgICAgICB2YWx1ZT17Zm9ybS5nYXRlX2VudHJ5X2VuZH1cclxuICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtKHAgPT4gKHsgLi4ucCwgZ2F0ZV9lbnRyeV9lbmQ6IGUudGFyZ2V0LnZhbHVlIH0pKX0gLz5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICA8L2Rpdj5cclxuXHJcbiAgICAgIHsvKiDilIDilIAgRXhpdCB3aW5kb3cg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovfVxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cInNldHRpbmctaXRlbVwiPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZy1pbmZvXCI+XHJcbiAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwic2V0dGluZy1sYWJlbFwiPkNBTVBVUyBFWElUIFdJTkRPVzwvbGFiZWw+XHJcbiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJzZXR0aW5nLWRlc2NyaXB0aW9uXCI+QWxsb3dlZCB0aW1lIHJhbmdlIGZvciBzdHVkZW50IGV4aXQ8L3NwYW4+XHJcbiAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzZXR0aW5nLWNvbnRyb2xcIj5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGltZS1yYW5nZVwiPlxyXG4gICAgICAgICAgICA8aW5wdXQgdHlwZT1cInRpbWVcIiBjbGFzc05hbWU9XCJ0aW1lLWlucHV0XCJcclxuICAgICAgICAgICAgICB2YWx1ZT17Zm9ybS5nYXRlX2V4aXRfc3RhcnR9XHJcbiAgICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0Rm9ybShwID0+ICh7IC4uLnAsIGdhdGVfZXhpdF9zdGFydDogZS50YXJnZXQudmFsdWUgfSkpfSAvPlxyXG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0aW1lLXNlcGFyYXRvclwiPnRvPC9zcGFuPlxyXG4gICAgICAgICAgICA8aW5wdXQgdHlwZT1cInRpbWVcIiBjbGFzc05hbWU9XCJ0aW1lLWlucHV0XCJcclxuICAgICAgICAgICAgICB2YWx1ZT17Zm9ybS5nYXRlX2V4aXRfZW5kfVxyXG4gICAgICAgICAgICAgIG9uQ2hhbmdlPXtlID0+IHNldEZvcm0ocCA9PiAoeyAuLi5wLCBnYXRlX2V4aXRfZW5kOiBlLnRhcmdldC52YWx1ZSB9KSl9IC8+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9kaXY+XHJcblxyXG4gICAgICB7Lyog4pSA4pSAIEJsb2NrIHRvZ2dsZSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99XHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZy1pdGVtIGNoZWNrYm94LWl0ZW1cIj5cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNldHRpbmctaW5mb1wiPlxyXG4gICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT1cInNldHRpbmctbGFiZWxcIj5CbG9jayBTY2FucyBPdXRzaWRlIFdpbmRvdzwvbGFiZWw+XHJcbiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJzZXR0aW5nLWRlc2NyaXB0aW9uXCI+XHJcbiAgICAgICAgICAgIFdoZW4gZW5hYmxlZCwgc2NhbnMgYXR0ZW1wdGVkIG91dHNpZGUgdGhlIHdpbmRvd3MgYXJlIHJlamVjdGVkLlxyXG4gICAgICAgICAgICBXaGVuIGRpc2FibGVkLCB0aGV5IGFyZSBhbGxvd2VkIGJ1dCBmbGFnZ2VkLlxyXG4gICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZy1jb250cm9sXCI+XHJcbiAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwic3dpdGNoXCI+XHJcbiAgICAgICAgICAgIDxpbnB1dCB0eXBlPVwiY2hlY2tib3hcIlxyXG4gICAgICAgICAgICAgIGNoZWNrZWQ9e2Zvcm0uYmxvY2tfb3V0c2lkZV93aW5kb3cgPT09ICd0cnVlJ31cclxuICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtKHAgPT4gKHtcclxuICAgICAgICAgICAgICAgIC4uLnAsIGJsb2NrX291dHNpZGVfd2luZG93OiBlLnRhcmdldC5jaGVja2VkID8gJ3RydWUnIDogJ2ZhbHNlJ1xyXG4gICAgICAgICAgICAgIH0pKX0gLz5cclxuICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwic2xpZGVyIHJvdW5kXCIgLz5cclxuICAgICAgICAgIDwvbGFiZWw+XHJcbiAgICAgICAgPC9kaXY+XHJcbiAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJzYXZlLXNldHRpbmdzXCI+XHJcbiAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9XCJzYXZlLWJ1dHRvblwiIG9uQ2xpY2s9e2hhbmRsZVNhdmV9IGRpc2FibGVkPXtzYXZpbmd9PlxyXG4gICAgICAgICAge3NhdmluZyA/ICdTYXZpbmfigKYnIDogJ1NBVkUgR0FURSBTRVRUSU5HUyd9XHJcbiAgICAgICAgPC9idXR0b24+XHJcbiAgICAgIDwvZGl2PlxyXG4gICAgPC9kaXY+XHJcbiAgKTtcclxufVxyXG5cclxuLy8g4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAXHJcbi8vIEFDQURFTUlDIFlFQVIgU0VUVElOR1MgU0VDVElPTlxyXG4vLyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIBcclxuXHJcbmZ1bmN0aW9uIEFjYWRlbWljWWVhclNlY3Rpb24oKSB7XHJcbiAgY29uc3QgW2Zvcm0sIHNldEZvcm1dID0gdXNlU3RhdGUoe1xyXG4gICAgc2Nob29sX3llYXJfc3RhcnQ6ICcyMDI1JyxcclxuICAgIHNjaG9vbF95ZWFyX2VuZDogICAnMjAyNicsXHJcbiAgICBzZW1lc3RlcjogICAgICAgICAgJzEnLFxyXG4gICAgc2VtMV9zdGFydDogICAgICAgICcyMDI1LTA4LTAxJyxcclxuICAgIHNlbTFfZW5kOiAgICAgICAgICAnMjAyNS0xMi0zMScsXHJcbiAgICBzZW0yX3N0YXJ0OiAgICAgICAgJzIwMjYtMDEtMDEnLFxyXG4gICAgc2VtMl9lbmQ6ICAgICAgICAgICcyMDI2LTA1LTMxJyxcclxuICB9KTtcclxuICBjb25zdCBbYWNhZGVtaWNJbmZvLCBzZXRBY2FkZW1pY0luZm9dID0gdXNlU3RhdGUobnVsbCk7XHJcbiAgY29uc3QgW2xvYWRpbmcsICAgICAgc2V0TG9hZGluZ10gICAgICA9IHVzZVN0YXRlKHRydWUpO1xyXG4gIGNvbnN0IFtzYXZpbmcsICAgICAgIHNldFNhdmluZ10gICAgICAgPSB1c2VTdGF0ZShmYWxzZSk7XHJcbiAgY29uc3QgW3Byb21vdGluZywgICAgc2V0UHJvbW90aW5nXSAgICA9IHVzZVN0YXRlKGZhbHNlKTtcclxuXHJcbiAgY29uc3QgZm9ybWF0VG9ETVkgPSAoZGF0ZVN0cikgPT4ge1xyXG4gICAgaWYgKCFkYXRlU3RyKSByZXR1cm4gJ+KAlCc7XHJcbiAgICBjb25zdCBbeWVhciwgbW9udGgsIGRheV0gPSBkYXRlU3RyLnNwbGl0KCctJyk7XHJcbiAgICByZXR1cm4gYCR7ZGF5fS8ke21vbnRofS8ke3llYXJ9YDtcclxuICB9O1xyXG5cclxuICAvLyDilIDilIAgTG9hZCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIBcclxuICB1c2VFZmZlY3QoKCkgPT4ge1xyXG4gICAgY29uc3QgbG9hZCA9IGFzeW5jICgpID0+IHtcclxuICAgICAgdHJ5IHtcclxuICAgICAgICBjb25zdCBbc2V0dFJlcywgYWNhZFJlc10gPSBhd2FpdCBQcm9taXNlLmFsbChbXHJcbiAgICAgICAgICBmZXRjaCgnL2FwaS9zZXR0aW5ncycpLFxyXG4gICAgICAgICAgZmV0Y2goJy9hcGkvc2V0dGluZ3MvYWNhZGVtaWMteWVhcicpLFxyXG4gICAgICAgIF0pO1xyXG4gICAgICAgIGNvbnN0IHNldHRpbmdzID0gYXdhaXQgc2V0dFJlcy5qc29uKCk7XHJcbiAgICAgICAgY29uc3QgYWNhZCAgICAgPSBhd2FpdCBhY2FkUmVzLmpzb24oKTtcclxuXHJcbiAgICAgICAgc2V0Rm9ybSh7XHJcbiAgICAgICAgICBzY2hvb2xfeWVhcl9zdGFydDogc2V0dGluZ3Muc2Nob29sX3llYXJfc3RhcnQgfHwgJzIwMjUnLFxyXG4gICAgICAgICAgc2Nob29sX3llYXJfZW5kOiAgIHNldHRpbmdzLnNjaG9vbF95ZWFyX2VuZCAgIHx8ICcyMDI2JyxcclxuICAgICAgICAgIHNlbWVzdGVyOiAgICAgICAgICBzZXR0aW5ncy5zZW1lc3RlciAgICAgICAgICAgfHwgJzEnLFxyXG4gICAgICAgICAgc2VtMV9zdGFydDogICAgICAgIHNldHRpbmdzLnNlbTFfc3RhcnQgICAgICAgICB8fCAnMjAyNS0wOC0wMScsXHJcbiAgICAgICAgICBzZW0xX2VuZDogICAgICAgICAgc2V0dGluZ3Muc2VtMV9lbmQgICAgICAgICAgIHx8ICcyMDI1LTEyLTMxJyxcclxuICAgICAgICAgIHNlbTJfc3RhcnQ6ICAgICAgICBzZXR0aW5ncy5zZW0yX3N0YXJ0ICAgICAgICAgfHwgJzIwMjYtMDEtMDEnLFxyXG4gICAgICAgICAgc2VtMl9lbmQ6ICAgICAgICAgIHNldHRpbmdzLnNlbTJfZW5kICAgICAgICAgICB8fCAnMjAyNi0wNS0zMScsXHJcbiAgICAgICAgfSk7XHJcbiAgICAgICAgc2V0QWNhZGVtaWNJbmZvKGFjYWQpO1xyXG4gICAgICB9IGNhdGNoIChlcnIpIHtcclxuICAgICAgICBjb25zb2xlLmVycm9yKCdbQWNhZGVtaWNZZWFyXSBsb2FkIGVycm9yOicsIGVycik7XHJcbiAgICAgIH0gZmluYWxseSB7XHJcbiAgICAgICAgc2V0TG9hZGluZyhmYWxzZSk7XHJcbiAgICAgIH1cclxuICAgIH07XHJcbiAgICBsb2FkKCk7XHJcbiAgfSwgW10pO1xyXG5cclxuICBjb25zdCBoYW5kbGVZZWFyU3RhcnRDaGFuZ2UgPSAoZSkgPT4ge1xyXG4gICAgY29uc3Qgc3RhcnQgPSBlLnRhcmdldC52YWx1ZTtcclxuICAgIHNldEZvcm0ocCA9PiAoeyAuLi5wLCBzY2hvb2xfeWVhcl9zdGFydDogc3RhcnQsIHNjaG9vbF95ZWFyX2VuZDogU3RyaW5nKHBhcnNlSW50KHN0YXJ0KSArIDEpIH0pKTtcclxuICB9O1xyXG5cclxuICBjb25zdCBoYW5kbGVTYXZlID0gYXN5bmMgKCkgPT4ge1xyXG4gICAgaWYgKGZvcm0uc2VtMV9lbmQgPD0gZm9ybS5zZW0xX3N0YXJ0KSB7XHJcbiAgICAgIFN3YWwuZmlyZSh7IGljb246ICd3YXJuaW5nJywgdGl0bGU6ICdJbnZhbGlkIDFzdCBTZW1lc3RlcicsXHJcbiAgICAgICAgdGV4dDogJ0VuZCBkYXRlIG11c3QgYmUgYWZ0ZXIgc3RhcnQgZGF0ZS4nLCBjb25maXJtQnV0dG9uVGV4dDogJ09LJyB9KTtcclxuICAgICAgcmV0dXJuO1xyXG4gICAgfVxyXG4gICAgaWYgKGZvcm0uc2VtMl9lbmQgPD0gZm9ybS5zZW0yX3N0YXJ0KSB7XHJcbiAgICAgIFN3YWwuZmlyZSh7IGljb246ICd3YXJuaW5nJywgdGl0bGU6ICdJbnZhbGlkIDJuZCBTZW1lc3RlcicsXHJcbiAgICAgICAgdGV4dDogJ0VuZCBkYXRlIG11c3QgYmUgYWZ0ZXIgc3RhcnQgZGF0ZS4nLCBjb25maXJtQnV0dG9uVGV4dDogJ09LJyB9KTtcclxuICAgICAgcmV0dXJuO1xyXG4gICAgfVxyXG5cclxuICAgIHRyeSB7XHJcbiAgICAgIHNldFNhdmluZyh0cnVlKTtcclxuICAgICAgY29uc3QgcmVzICA9IGF3YWl0IGZldGNoKCcvYXBpL3NldHRpbmdzJywge1xyXG4gICAgICAgIG1ldGhvZDogICdQVVQnLFxyXG4gICAgICAgIGhlYWRlcnM6IHsgJ0NvbnRlbnQtVHlwZSc6ICdhcHBsaWNhdGlvbi9qc29uJyB9LFxyXG4gICAgICAgIGJvZHk6ICAgIEpTT04uc3RyaW5naWZ5KGZvcm0pLFxyXG4gICAgICB9KTtcclxuICAgICAgY29uc3QgZGF0YSA9IGF3YWl0IHJlcy5qc29uKCk7XHJcbiAgICAgIGlmICghcmVzLm9rKSB0aHJvdyBuZXcgRXJyb3IoZGF0YS5tZXNzYWdlKTtcclxuXHJcbiAgICAgIGNvbnN0IGFjYWRSZXMgPSBhd2FpdCBmZXRjaCgnL2FwaS9zZXR0aW5ncy9hY2FkZW1pYy15ZWFyJyk7XHJcbiAgICAgIHNldEFjYWRlbWljSW5mbyhhd2FpdCBhY2FkUmVzLmpzb24oKSk7XHJcblxyXG4gICAgICBTd2FsLmZpcmUoeyBpY29uOiAnc3VjY2VzcycsIHRpdGxlOiAnQWNhZGVtaWMgWWVhciBTYXZlZCcsXHJcbiAgICAgICAgdGltZXI6IDIwMDAsIHNob3dDb25maXJtQnV0dG9uOiBmYWxzZSB9KTtcclxuICAgIH0gY2F0Y2ggKGVycikge1xyXG4gICAgICBTd2FsLmZpcmUoeyBpY29uOiAnZXJyb3InLCB0aXRsZTogJ1NhdmUgRmFpbGVkJywgdGV4dDogZXJyLm1lc3NhZ2UgfSk7XHJcbiAgICB9IGZpbmFsbHkge1xyXG4gICAgICBzZXRTYXZpbmcoZmFsc2UpO1xyXG4gICAgfVxyXG4gIH07XHJcblxyXG4gIGNvbnN0IGhhbmRsZVByb21vdGUgPSBhc3luYyAoKSA9PiB7XHJcbiAgICBjb25zdCByZXN1bHQgPSBhd2FpdCBTd2FsLmZpcmUoe1xyXG4gICAgICBpY29uOiAgICAgICAgICAgICAnd2FybmluZycsXHJcbiAgICAgIHRpdGxlOiAgICAgICAgICAgICdQcm9tb3RlIFN0dWRlbnRzPycsXHJcbiAgICAgIGh0bWw6IGBcclxuICAgICAgICA8cD5UaGlzIHdpbGw6PC9wPlxyXG4gICAgICAgIDx1bCBzdHlsZT1cInRleHQtYWxpZ246bGVmdDttYXJnaW46OHB4IDA7XCI+XHJcbiAgICAgICAgICA8bGk+SW5jcmVtZW50IHllYXIgbGV2ZWwgZm9yIGFsbCA8c3Ryb25nPlJlZ3VsYXI8L3N0cm9uZz4gc3R1ZGVudHMgKFllYXIgMeKAkzMpPC9saT5cclxuICAgICAgICAgIDxsaT48c3Ryb25nPjR0aC15ZWFyIFJlZ3VsYXI8L3N0cm9uZz4gc3R1ZGVudHMgd2lsbCBiZSA8c3Ryb25nPkFSQ0hJVkVEIGFzIEdyYWR1YXRlZDwvc3Ryb25nPjwvbGk+XHJcbiAgICAgICAgICA8bGk+TGVhdmUgSXJyZWd1bGFyLCBMT0EsIERyb3BvdXQsIGV0Yy4gPHN0cm9uZz51bmNoYW5nZWQ8L3N0cm9uZz48L2xpPlxyXG4gICAgICAgIDwvdWw+XHJcbiAgICAgICAgPHA+PHN0cm9uZz5UaGlzIGFjdGlvbiBjYW5ub3QgYmUgdW5kb25lLjwvc3Ryb25nPjwvcD5cclxuICAgICAgYCxcclxuICAgICAgc2hvd0NhbmNlbEJ1dHRvbjogIHRydWUsXHJcbiAgICAgIGNvbmZpcm1CdXR0b25UZXh0OiAnWWVzLCBQcm9tb3RlJyxcclxuICAgICAgY2FuY2VsQnV0dG9uVGV4dDogICdDYW5jZWwnLFxyXG4gICAgICBjb25maXJtQnV0dG9uQ29sb3I6JyMwMTMxMWQnLFxyXG4gICAgfSk7XHJcbiAgICBpZiAoIXJlc3VsdC5pc0NvbmZpcm1lZCkgcmV0dXJuO1xyXG5cclxuICAgIHRyeSB7XHJcbiAgICAgIHNldFByb21vdGluZyh0cnVlKTtcclxuICAgICAgY29uc3QgcmVzICA9IGF3YWl0IGZldGNoKCcvYXBpL3NldHRpbmdzL3Byb21vdGUtc3R1ZGVudHMnLCB7IG1ldGhvZDogJ1BPU1QnIH0pO1xyXG4gICAgICBjb25zdCBkYXRhID0gYXdhaXQgcmVzLmpzb24oKTtcclxuICAgICAgaWYgKCFyZXMub2spIHRocm93IG5ldyBFcnJvcihkYXRhLm1lc3NhZ2UpO1xyXG5cclxuICAgICAgY29uc3QgYWNhZFJlcyA9IGF3YWl0IGZldGNoKCcvYXBpL3NldHRpbmdzL2FjYWRlbWljLXllYXInKTtcclxuICAgICAgc2V0QWNhZGVtaWNJbmZvKGF3YWl0IGFjYWRSZXMuanNvbigpKTtcclxuXHJcbiAgICAgIFN3YWwuZmlyZSh7XHJcbiAgICAgICAgaWNvbjogICdzdWNjZXNzJyxcclxuICAgICAgICB0aXRsZTogJ1Byb21vdGlvbiBDb21wbGV0ZScsXHJcbiAgICAgICAgaHRtbDogIGA8cD48c3Ryb25nPiR7ZGF0YS5wcm9tb3RlZH08L3N0cm9uZz4gc3R1ZGVudHMgcHJvbW90ZWQgdG8gbmV4dCB5ZWFyIGxldmVsLjxici8+XHJcbiAgICAgICAgICAgICAgICA8c3Ryb25nPiR7ZGF0YS5ncmFkdWF0ZWR9PC9zdHJvbmc+IDR0aC15ZWFyIHN0dWRlbnRzIGdyYWR1YXRlZCBhbmQgYXJjaGl2ZWQuPC9wPmAsXHJcbiAgICAgICAgY29uZmlybUJ1dHRvblRleHQ6ICdEb25lJyxcclxuICAgICAgfSk7XHJcbiAgICAgIFxyXG4gICAgfSBjYXRjaCAoZXJyKSB7XHJcbiAgICAgIFN3YWwuZmlyZSh7IGljb246ICdlcnJvcicsIHRpdGxlOiAnUHJvbW90aW9uIEZhaWxlZCcsIHRleHQ6IGVyci5tZXNzYWdlIH0pO1xyXG4gICAgfSBmaW5hbGx5IHtcclxuICAgICAgc2V0UHJvbW90aW5nKGZhbHNlKTtcclxuICAgIH1cclxuICB9O1xyXG5cclxuICBpZiAobG9hZGluZykgcmV0dXJuIDxkaXYgY2xhc3NOYW1lPVwibG9hZGluZy1zdGF0ZVwiPkxvYWRpbmcgYWNhZGVtaWMgeWVhciBzZXR0aW5nc+KApjwvZGl2PjtcclxuXHJcbiAgcmV0dXJuIChcclxuICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZ3Mtc2VjdGlvbiBhY2FkZW1pYy1zZXR0aW5ncy1zZWN0aW9uXCI+XHJcbiAgICAgIDxoMiBjbGFzc05hbWU9XCJzZWN0aW9uLXRpdGxlXCI+QUNBREVNSUMgWUVBUiBTRVRUSU5HUzwvaDI+XHJcbiAgICAgIDxwIGNsYXNzTmFtZT1cInNldHRpbmctZGVzY3JpcHRpb25cIiBzdHlsZT17eyBtYXJnaW5Cb3R0b206IDE2IH19PlxyXG4gICAgICAgIFNldCB0aGUgY3VycmVudCBzY2hvb2wgeWVhciBhbmQgc2VtZXN0ZXIgZGF0ZXMuIFRoZSBzeXN0ZW0gYXV0by1kZXRlY3RzXHJcbiAgICAgICAgdGhlIGFjdGl2ZSBzZW1lc3RlciBmcm9tIHRvZGF5J3MgZGF0ZS5cclxuICAgICAgPC9wPlxyXG5cclxuICAgICAgey8qIOKUgOKUgCBTdGF0dXMgYmFubmVyIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqL31cclxuICAgICAge2FjYWRlbWljSW5mbyAmJiAoXHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhY2FkZW1pYy1zdGF0dXMtYmFubmVyXCI+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFjYWRlbWljLXN0YXR1cy1pdGVtXCI+XHJcbiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImFjYWRlbWljLWxhYmVsXCI+U2Nob29sIFllYXI8L3NwYW4+XHJcbiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImFjYWRlbWljLXZhbHVlXCI+e2FjYWRlbWljSW5mby5zY2hvb2xZZWFyfTwvc3Bhbj5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhY2FkZW1pYy1zdGF0dXMtZGl2aWRlclwiIC8+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFjYWRlbWljLXN0YXR1cy1pdGVtXCI+XHJcbiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImFjYWRlbWljLWxhYmVsXCI+QWN0aXZlIFNlbWVzdGVyPC9zcGFuPlxyXG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJhY2FkZW1pYy12YWx1ZVwiPlxyXG4gICAgICAgICAgICAgIHthY2FkZW1pY0luZm8uZGV0ZWN0ZWRTZW1lc3RlciA9PT0gJ0JyZWFrJ1xyXG4gICAgICAgICAgICAgICAgPyAnU2VtZXN0ZXIgQnJlYWsnXHJcbiAgICAgICAgICAgICAgICA6IGAke2FjYWRlbWljSW5mby5kZXRlY3RlZFNlbWVzdGVyID09PSAnMScgPyAnMXN0JyA6ICcybmQnfSBTZW1lc3RlcmB9XHJcbiAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhY2FkZW1pYy1zdGF0dXMtZGl2aWRlclwiIC8+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFjYWRlbWljLXN0YXR1cy1pdGVtXCI+XHJcbiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImFjYWRlbWljLWxhYmVsXCI+VG9kYXk8L3NwYW4+XHJcbiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImFjYWRlbWljLXZhbHVlXCI+e2Zvcm1hdFRvRE1ZKGFjYWRlbWljSW5mby50b2RheSl9PC9zcGFuPlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICB7YWNhZGVtaWNJbmZvLnByb21vdGlvbkR1ZSAmJiAoXHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicHJvbW90aW9uLXdhcm5pbmdcIj5cclxuICAgICAgICAgICAgICDimqDvuI8gU2Nob29sIHllYXIgaGFzIGVuZGVkIOKAlCBzdHVkZW50IHByb21vdGlvbiBpcyBkdWUuXHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgKX1cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgKX1cclxuXHJcbiAgICAgIHsvKiDilIDilIAgU2Nob29sIHllYXIg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovfVxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cInNldHRpbmctaXRlbVwiPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZy1pbmZvXCI+XHJcbiAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwic2V0dGluZy1sYWJlbFwiPlNjaG9vbCBZZWFyPC9sYWJlbD5cclxuICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInNldHRpbmctZGVzY3JpcHRpb25cIj5BY2FkZW1pYyB5ZWFyIHJhbmdlIChlLmcuIDIwMjXigJMyMDI2KTwvc3Bhbj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNldHRpbmctY29udHJvbFwiPlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0aW1lLXJhbmdlXCI+XHJcbiAgICAgICAgICAgIDxpbnB1dFxyXG4gICAgICAgICAgICAgIHR5cGU9XCJudW1iZXJcIiBtaW49XCIyMDIwXCIgbWF4PVwiMjA5OVwiXHJcbiAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidGltZS1pbnB1dFwiXHJcbiAgICAgICAgICAgICAgc3R5bGU9e3sgd2lkdGg6IDkwIH19XHJcbiAgICAgICAgICAgICAgdmFsdWU9e2Zvcm0uc2Nob29sX3llYXJfc3RhcnR9XHJcbiAgICAgICAgICAgICAgb25DaGFuZ2U9e2hhbmRsZVllYXJTdGFydENoYW5nZX1cclxuICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGltZS1zZXBhcmF0b3JcIj7igJM8L3NwYW4+XHJcbiAgICAgICAgICAgIDxpbnB1dFxyXG4gICAgICAgICAgICAgIHR5cGU9XCJudW1iZXJcIiBjbGFzc05hbWU9XCJ0aW1lLWlucHV0XCJcclxuICAgICAgICAgICAgICBzdHlsZT17eyB3aWR0aDogOTAsIG9wYWNpdHk6IDAuNiwgYmFja2dyb3VuZDogJyNmNWY1ZjUnIH19XHJcbiAgICAgICAgICAgICAgdmFsdWU9e2Zvcm0uc2Nob29sX3llYXJfZW5kfVxyXG4gICAgICAgICAgICAgIGRpc2FibGVkXHJcbiAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9kaXY+XHJcblxyXG4gICAgICB7Lyog4pSA4pSAIDFzdCBzZW1lc3RlciDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99XHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZy1pdGVtXCI+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzZXR0aW5nLWluZm9cIj5cclxuICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJzZXR0aW5nLWxhYmVsXCI+XHJcbiAgICAgICAgICAgIDFzdCBTZW1lc3RlclxyXG4gICAgICAgICAgICB7YWNhZGVtaWNJbmZvPy5kZXRlY3RlZFNlbWVzdGVyID09PSAnMScgJiYgKFxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInNlbWVzdGVyLWFjdGl2ZS1iYWRnZVwiPiDil48gQWN0aXZlPC9zcGFuPlxyXG4gICAgICAgICAgICApfVxyXG4gICAgICAgICAgPC9sYWJlbD5cclxuICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInNldHRpbmctZGVzY3JpcHRpb25cIj5TdGFydCBhbmQgZW5kIGRhdGVzIGZvciB0aGUgMXN0IHNlbWVzdGVyPC9zcGFuPlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZy1jb250cm9sXCI+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRpbWUtcmFuZ2VcIj5cclxuICAgICAgICAgICAgPGlucHV0IHR5cGU9XCJkYXRlXCIgY2xhc3NOYW1lPVwidGltZS1pbnB1dFwiXHJcbiAgICAgICAgICAgICAgdmFsdWU9e2Zvcm0uc2VtMV9zdGFydH1cclxuICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtKHAgPT4gKHsgLi4ucCwgc2VtMV9zdGFydDogZS50YXJnZXQudmFsdWUgfSkpfSAvPlxyXG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0aW1lLXNlcGFyYXRvclwiPnRvPC9zcGFuPlxyXG4gICAgICAgICAgICA8aW5wdXQgdHlwZT1cImRhdGVcIiBjbGFzc05hbWU9XCJ0aW1lLWlucHV0XCJcclxuICAgICAgICAgICAgICB2YWx1ZT17Zm9ybS5zZW0xX2VuZH1cclxuICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRGb3JtKHAgPT4gKHsgLi4ucCwgc2VtMV9lbmQ6IGUudGFyZ2V0LnZhbHVlIH0pKX0gLz5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICA8L2Rpdj5cclxuXHJcbiAgICAgIHsvKiDilIDilIAgMm5kIHNlbWVzdGVyIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqL31cclxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJzZXR0aW5nLWl0ZW1cIj5cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNldHRpbmctaW5mb1wiPlxyXG4gICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT1cInNldHRpbmctbGFiZWxcIj5cclxuICAgICAgICAgICAgMm5kIFNlbWVzdGVyXHJcbiAgICAgICAgICAgIHthY2FkZW1pY0luZm8/LmRldGVjdGVkU2VtZXN0ZXIgPT09ICcyJyAmJiAoXHJcbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwic2VtZXN0ZXItYWN0aXZlLWJhZGdlXCI+IOKXjyBBY3RpdmU8L3NwYW4+XHJcbiAgICAgICAgICAgICl9XHJcbiAgICAgICAgICA8L2xhYmVsPlxyXG4gICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwic2V0dGluZy1kZXNjcmlwdGlvblwiPlN0YXJ0IGFuZCBlbmQgZGF0ZXMgZm9yIHRoZSAybmQgc2VtZXN0ZXI8L3NwYW4+XHJcbiAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzZXR0aW5nLWNvbnRyb2xcIj5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGltZS1yYW5nZVwiPlxyXG4gICAgICAgICAgICA8aW5wdXQgdHlwZT1cImRhdGVcIiBjbGFzc05hbWU9XCJ0aW1lLWlucHV0XCJcclxuICAgICAgICAgICAgICB2YWx1ZT17Zm9ybS5zZW0yX3N0YXJ0fVxyXG4gICAgICAgICAgICAgIG9uQ2hhbmdlPXtlID0+IHNldEZvcm0ocCA9PiAoeyAuLi5wLCBzZW0yX3N0YXJ0OiBlLnRhcmdldC52YWx1ZSB9KSl9IC8+XHJcbiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRpbWUtc2VwYXJhdG9yXCI+dG88L3NwYW4+XHJcbiAgICAgICAgICAgIDxpbnB1dCB0eXBlPVwiZGF0ZVwiIGNsYXNzTmFtZT1cInRpbWUtaW5wdXRcIlxyXG4gICAgICAgICAgICAgIHZhbHVlPXtmb3JtLnNlbTJfZW5kfVxyXG4gICAgICAgICAgICAgIG9uQ2hhbmdlPXtlID0+IHNldEZvcm0ocCA9PiAoeyAuLi5wLCBzZW0yX2VuZDogZS50YXJnZXQudmFsdWUgfSkpfSAvPlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgPC9kaXY+XHJcbiAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJzYXZlLXNldHRpbmdzXCI+XHJcbiAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9XCJzYXZlLWJ1dHRvblwiIG9uQ2xpY2s9e2hhbmRsZVNhdmV9IGRpc2FibGVkPXtzYXZpbmd9PlxyXG4gICAgICAgICAge3NhdmluZyA/ICdTYXZpbmfigKYnIDogJ1NBVkUgQUNBREVNSUMgWUVBUiBTRVRUSU5HUyd9XHJcbiAgICAgICAgPC9idXR0b24+XHJcbiAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgey8qIOKUgOKUgCBZZWFyLWxldmVsIHByb21vdGlvbiDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99XHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2V0dGluZ3Mtc2VjdGlvblwiIHN0eWxlPXt7IG1hcmdpblRvcDogMjgsIHBhZGRpbmdUb3A6IDIwLCBib3JkZXJUb3A6ICcxcHggc29saWQgI2U5ZWNlZicsIG1hcmdpbkJvdHRvbTogXCIyMHB4XCIgfX0+XHJcbiAgICAgICAgPGgyIGNsYXNzTmFtZT1cInNlY3Rpb24tdGl0bGVcIj5ZRUFSIExFVkVMIFBST01PVElPTjwvaDI+XHJcbiAgICAgICAgPHAgY2xhc3NOYW1lPVwic2V0dGluZy1kZXNjcmlwdGlvblwiIHN0eWxlPXt7IG1hcmdpbkJvdHRvbTogMTIgfX0+XHJcbiAgICAgICAgICBSdW4gYXQgdGhlIGVuZCBvZiB0aGUgc2Nob29sIHllYXIuIFJlZ3VsYXIgc3R1ZGVudHMgYWR2YW5jZSBvbmUgeWVhciBsZXZlbDtcclxuICAgICAgICAgIDR0aC15ZWFyIFJlZ3VsYXIgc3R1ZGVudHMgYXJlIGF1dG9tYXRpY2FsbHkgbWFya2VkIGFzIDxzdHJvbmc+R3JhZHVhdGVkPC9zdHJvbmc+LlxyXG4gICAgICAgICAgSXJyZWd1bGFyLCBMT0EsIERyb3BvdXQgYW5kIG90aGVyIHN0YXR1c2VzIGFyZSA8c3Ryb25nPm5vdCBhZmZlY3RlZDwvc3Ryb25nPi5cclxuICAgICAgICA8L3A+XHJcblxyXG4gICAgICAgIHthY2FkZW1pY0luZm8/LnByb21vdGlvbkR1ZSAmJiAoXHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInByb21vdGlvbi1kdWUtYWxlcnRcIj5cclxuICAgICAgICAgICAg4pqg77iPIFRoZSAybmQgc2VtZXN0ZXIgaGFzIGVuZGVkLiBTdHVkZW50IHByb21vdGlvbiBpcyByZWNvbW1lbmRlZC5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICl9XHJcblxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwic2F2ZS1zZXR0aW5nc1wiPlxyXG4gICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICBjbGFzc05hbWU9XCJzYXZlLWJ1dHRvblwiXHJcbiAgICAgICAgICAgIHN0eWxlPXt7IGJhY2tncm91bmQ6ICdsaW5lYXItZ3JhZGllbnQoMTM1ZGVnLCAjM2I2ZGE2LCAjMGQ0N2ExKScsIG1hcmdpbkJvdHRvbTogXCIxMHB4XCIgfX1cclxuICAgICAgICAgICAgb25DbGljaz17aGFuZGxlUHJvbW90ZX1cclxuICAgICAgICAgICAgZGlzYWJsZWQ9e3Byb21vdGluZ31cclxuICAgICAgICAgID5cclxuICAgICAgICAgICAge3Byb21vdGluZyA/ICdQcm9tb3RpbmfigKYnIDogJ1Byb21vdGUgUmVndWxhciBTdHVkZW50cyd9XHJcbiAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9kaXY+XHJcbiAgICA8L2Rpdj5cclxuICApO1xyXG59XHJcblxyXG4vLyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIBcclxuLy8gQ09NQklORUQgRVhQT1JUIOKAkyBub3cgc2lkZSBieSBzaWRlXHJcbi8vIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgFxyXG5cclxuZnVuY3Rpb24gR2VuZXJhbFNldHRpbmdzKCkge1xyXG4gIHJldHVybiAoXHJcbiAgICA8ZGl2IGNsYXNzTmFtZT1cImdlbmVyYWwtc2V0dGluZ3MtcGFnZVwiPlxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImdlbmVyYWwtc2V0dGluZ3Mtcm93IHRvcC1yb3dcIj5cclxuICAgICAgICA8R2F0ZVNldHRpbmdzU2VjdGlvbiAvPlxyXG4gICAgICAgIDxBY2FkZW1pY1llYXJTZWN0aW9uIC8+XHJcbiAgICAgIDwvZGl2PlxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImdlbmVyYWwtc2V0dGluZ3Mtcm93IGJvdHRvbS1yb3dcIj5cclxuICAgICAgICA8TG9nb1NldHRpbmdzIC8+XHJcbiAgICAgIDwvZGl2PlxyXG4gICAgPC9kaXY+XHJcbiAgKTtcclxufVxyXG5cclxuZXhwb3J0IGRlZmF1bHQgR2VuZXJhbFNldHRpbmdzOyJdLCJmaWxlIjoiRDovU21hcnQtRW50cmFuY2UtRXhpdC1hbmQtQXR0ZW5kYW5jZS1Nb25pdG9yaW5nLVN5c3RlbS9tb2R1bGUxL3BscC1zdHVkZW50LW1vbml0b3Jpbmcvc3JjL3BhZ2VzL3N1cGVyYWRtaW5wYWdlcy9TeXN0ZW1TZXR0aW5ncy9HZW5lcmFsU2V0dGluZ3MuanN4In0=

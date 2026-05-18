@@ -55,6 +55,35 @@ function loadImageAsBase64(url) {
   });
 }
 
+function formatNameLastFirst(name) {
+  if (!name) return '';
+  const trimmed = String(name).trim();
+  if (!trimmed) return '';
+  if (trimmed.includes(',')) return trimmed;
+
+  const parts = trimmed.split(/\s+/);
+  if (parts.length <= 1) return trimmed;
+
+  const normalize = (token) => token.toLowerCase().replace(/\.+$/, '');
+  const last = parts[parts.length - 1];
+  const second = parts[parts.length - 2];
+  const secondNorm = normalize(second);
+  const thirdNorm = parts.length >= 3 ? normalize(parts[parts.length - 3]) : '';
+
+  const compoundTwoWord = new Set(['sta', 'sta.', 'del', 'de', 'da', 'dos', 'do', 'di', 'van', 'von']);
+  const compoundThreeWord = new Set(['la', 'las', 'los']);
+
+  if (thirdNorm === 'de' && compoundThreeWord.has(secondNorm)) {
+    return `${parts.slice(parts.length - 3).join(' ')}, ${parts.slice(0, -3).join(' ')}`;
+  }
+
+  if (compoundTwoWord.has(secondNorm) || (thirdNorm === 'van' && secondNorm === 'der')) {
+    return `${parts.slice(parts.length - 2).join(' ')}, ${parts.slice(0, -2).join(' ')}`;
+  }
+
+  return `${last}, ${parts.slice(0, -1).join(' ')}`;
+}
+
 function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
 
   const event_ID  = eventData?.event_ID;
@@ -81,6 +110,8 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
   );
   const [scanMode, setScanMode] = useState(null);
   const [hasSetup, setHasSetup] = useState(false);
+  const [dbDeptLogos, setDbDeptLogos] = useState({});
+  const [includePasigLogos, setIncludePasigLogos] = useState(true);
 
   // Load mode from localStorage on init
   useEffect(() => {
@@ -99,10 +130,6 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
 
   const plpLogo         = localStorage.getItem(PLP_LOGO_KEY) || '';
   const institutionName = localStorage.getItem(NAME_KEY) || 'Pamantasan ng Lungsod ng Pasig';
-  const deptLogos       = (() => {
-    try { return JSON.parse(localStorage.getItem(DEPT_LOGOS_KEY) || '{}'); }
-    catch { return {}; }
-  })();
 
   const eventDate = eventData?.event_date || '';
   const eventType = eventData?.eventtype_name || '';
@@ -159,6 +186,16 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
       setAllEmployees(activeEmployees);
       setAllDepartments(deptArr);
       setSelectedEmployeeIds(new Set(ids.map(Number)));
+
+      // Map department names to their logos
+      const logoMap = {};
+      deptArr.forEach(d => {
+        if (d.dept_name && d.logo) {
+          logoMap[d.dept_name] = d.logo;
+        }
+      });
+      setDbDeptLogos(logoMap);
+
       const setupExists = Array.isArray(ids) && ids.length > 0;
       setHasSetup(setupExists);
 
@@ -331,6 +368,14 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
     ...new Set(records.map(r => r.department_name).filter(Boolean)),
   ];
 
+  const availableDates = [
+    'All Dates',
+    ...new Set(records.map(r => {
+      const dt = r.time_in || r.time_out;
+      return dt ? dt.split(' ')[0] : null;
+    }).filter(Boolean).sort().reverse())
+  ];
+
   const setupFilteredEmployees = allEmployees.filter(emp => {
     const q        = setupSearch.toLowerCase();
     const fullName = `${emp.employee_firstName || ''} ${emp.employee_LastName || ''}`.trim().toLowerCase();
@@ -345,300 +390,210 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
       await ensurePdfLibs();
 
       const officeName = (activeFilterCat === 'dept') ? activeFilterVal.toUpperCase() : 'ALL DEPARTMENTS';
-      const collegeLogo = (activeFilterCat === 'dept') ? (deptLogos[activeFilterVal] || '') : '';
-      const exportRows  = filtered;
+      const collegeLogo = (activeFilterCat === 'dept') ? (dbDeptLogos[activeFilterVal] || '') : '';
+      const exportRows  = filtered.map(r => ({
+        ...r,
+        fullName: formatNameLastFirst(
+          r.fullName ||
+          `${r.employee_lastName || r.employee_LastName || ''} ${r.employee_firstName || r.employee_FirstName || ''}`.trim()
+        )
+      }));
       const dateStr     = formatDate(eventDate);
 
       // Pre-load logos as base64
       const [pasigLogoB64, pasigWordmarkB64, plpLogoB64, collegeLogoB64] = await Promise.all([
-        loadImageAsBase64('/Pasig_Logo.PNG'),
-        loadImageAsBase64('/Pasig_Wordmark.PNG'),
+        includePasigLogos ? loadImageAsBase64('/Pasig_Logo.PNG') : Promise.resolve(''),
+        includePasigLogos ? loadImageAsBase64('/Pasig_Wordmark.PNG') : Promise.resolve(''),
         plpLogo ? loadImageAsBase64(plpLogo) : Promise.resolve(''),
         collegeLogo ? loadImageAsBase64(collegeLogo) : Promise.resolve(''),
       ]);
 
-      const rowsHtml = exportRows.map((r, i) => `
-        <tr>
-          <td class="cc">${i + 1}</td>
-          <td>${r.fullName || ''}</td>
-          <td class="cc">${r.attended ? '&#10003;' : ''}</td>
-          <td class="cc">${!r.attended ? 'A' : ''}</td>
-        </tr>
-      `).join('');
-
-      const padCount    = Math.max(0, 15 - exportRows.length);
-      const paddingHtml = Array.from({ length: padCount }).map((_, i) => `
-        <tr>
-          <td class="cc">${exportRows.length + i + 1}</td>
-          <td></td><td></td><td></td>
-        </tr>
-      `).join('');
-
-      const attended   = exportRows.filter(r => r.attended).length;
-      const absent     = exportRows.filter(r => !r.attended).length;
-      const attendRate = exportRows.length
-        ? ((attended / exportRows.length) * 100).toFixed(1) : 0;
-
-      const container = document.createElement('div');
-      container.style.cssText = `
-        position:fixed; left:-9999px; top:0;
-        width:794px; background:#fff; padding:28px 40px;
-        font-family:Arial,Helvetica,sans-serif; font-size:11pt; color:#000;
-        box-sizing:border-box;
-      `;
-
-      container.innerHTML = `
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-
-          .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 14px;
-          }
-
-          /* LEFT: logos row */
-          .logo-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-          }
-          .logo-left img {
-            height: 75px;
-            width: auto;
-            object-fit: contain;
-          }
-          .logo-wordmark { height: 48px !important; }
-          .logo-divider {
-            width: 1.5px;
-            height: 65px;
-            background: #cccccc;
-            flex-shrink: 0;
-            margin: 0 4px;
-          }
-          .logo-placeholder {
-            height: 75px;
-            width: 75px;
-            border: 1.5px dashed #bbb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8pt;
-            color: #aaa;
-            text-align: center;
-            line-height: 1.4;
-            border-radius: 4px;
-          }
-
-          /* RIGHT: school info */
-          .header-right {
-            text-align: right;
-            line-height: 1.6;
-            flex-shrink: 0;
-            max-width: 320px;
-          }
-          .header-institution {
-            font-size: 12pt;
-            font-weight: bold;
-            color: #ffffff;
-            background-color: #003399;
-            padding: 2px 6px 2px 12px;
-            letter-spacing: 0.3px;
-            display: inline-block;
-            border-radius: 20px 0px 0px 20px;
-          }
-          .header-sub {
-            font-size: 9.5pt;
-            color: #222;
-            font-weight: 600;
-            margin-top: 3px;
-          }
-          .header-address {
-            font-size: 8.5pt;
-            color: #444;
-            margin-top: 1px;
-          }
-          .header-contact {
-            font-size: 8pt;
-            color: #555;
-            margin-top: 2px;
-          }
-
-          /* TITLE BLOCK */
-          .title-block {
-            text-align: center;
-            padding: 8px 0 6px;
-          }
-          .title-block h2 {
-            font-size: 13pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-          }
-          .title-block .date-line {
-            font-size: 11pt;
-            margin-top: 4px;
-          }
-
-          .info-rows { margin: 10px 0 6px; font-size: 10.5pt; line-height: 1.7; }
-          .instruction { font-size: 9pt; color: #333; margin-bottom: 8px; font-style: italic; }
-
-          table { width: 100%; border-collapse: collapse; font-size: 10.5pt; margin-bottom: 16px; }
-          th {
-            background: #f0f0f0; font-weight: 700;
-            border: 1px solid #000; padding: 5px 8px; text-align: center;
-          }
-          td { border: 1px solid #555; padding: 5px 8px; height: 26px; vertical-align: middle; }
-          .cc { text-align: center; }
-          col.col-no   { width: 42px; }
-          col.col-pres { width: 80px; }
-          col.col-abs  { width: 100px; }
-
-          .stats-box {
-            display: flex; gap: 28px; font-size: 10.5pt;
-            border: 1px solid #ccc; padding: 9px 16px;
-            border-radius: 4px; background: #fafafa; margin-bottom: 22px;
-          }
-          .footer-section { margin-top: 10px; font-size: 10pt; line-height: 1.8; }
-          .footer-note    { margin-bottom: 22px; }
-          .signature-line {
-            display: inline-block; width: 240px;
-            border-top: 1.5px solid #000;
-            margin-top: 32px; padding-top: 3px;
-            font-size: 10pt; font-weight: bold;
-          }
-          .signature-sub { font-size: 9.5pt; font-weight: normal; color: #333; }
-        </style>
-
-        <!-- HEADER -->
-        <div class="header">
-
-          <!-- LEFT: Pasig Logo → Pasig Wordmark → divider → School Logo → Dept Logo -->
-          <div class="logo-left">
-            ${pasigLogoB64
-              ? `<img src="${pasigLogoB64}" alt="Pasig Logo" />`
-              : `<div class="logo-placeholder">Pasig<br>Logo</div>`}
-
-            ${pasigWordmarkB64
-              ? `<img src="${pasigWordmarkB64}" alt="Pasig Wordmark" class="logo-wordmark" />`
-              : `<div class="logo-placeholder" style="width:110px;">Pasig<br>Wordmark</div>`}
-
-            <div class="logo-divider"></div>
-
-            ${plpLogoB64
-              ? `<img src="${plpLogoB64}" alt="School Logo" />`
-              : `<div class="logo-placeholder">School<br>Logo</div>`}
-
-            ${(activeFilterCat === 'dept')
-              ? collegeLogoB64
-                ? `<img src="${collegeLogoB64}" alt="Department Logo" />`
-                : `<div class="logo-placeholder">Dept<br>Logo</div>`
-              : ''}
-          </div>
-
-          <!-- RIGHT: school name ribbon + info -->
-          <div class="header-right">
-            <div class="header-institution">${institutionName}</div>
-            <div class="header-sub">Office of the Human Resource Development</div>
-            <div class="header-address">Alkalde Jose St., Kapasigan, Pasig City, Philippines 1600</div>
-            <div class="header-contact">&#9990; 638-1014 Loc. 106 &nbsp;&nbsp;|&nbsp;&nbsp; &#9993; hrd@plpasig.edu.ph</div>
-          </div>
-
-        </div>
-
-        <!-- TITLE BLOCK -->
-        <div class="title-block">
-          <h2>Attendance for ${eventType || 'Event'}</h2>
-          <div class="date-line">
-            DATE: <strong>${dateStr}</strong>
-            ${timeStart
-              ? ` &nbsp;|&nbsp; TIME: <strong>${formatTime(timeStart)}${timeEnd ? ' \u2013 ' + formatTime(timeEnd) : ''}</strong>`
-              : ''}
-          </div>
-        </div>
-
-        <div class="info-rows">
-          <div><strong>NAME OF OFFICE:</strong> ${officeName}</div>
-          ${location ? `<div><strong>VENUE:</strong> ${location}</div>` : ''}
-          <div style="margin-top: 5px; font-size: 9pt; color: #555;">
-            <strong>Filter applied:</strong> 
-            ${activeFilterCat === 'all' ? 'None (All Records)' : `${activeFilterCat.toUpperCase()}: ${activeFilterVal}${activeFilterCat === 'date' ? `${dateDD}-${dateMM}-${dateYYYY}` : ''}`}
-          </div>
-        </div>
-
-        <div class="instruction">
-          <strong>&#10003;</strong> means present; if absent <strong>A</strong> and if late <strong>L</strong>.
-        </div>
-
-        <table>
-          <colgroup>
-            <col class="col-no" /><col /><col class="col-pres" /><col class="col-abs" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>No.</th>
-              <th>Name of Employee</th>
-              <th>PRESENT</th>
-              <th>ABSENT / LATE</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-            ${paddingHtml}
-          </tbody>
-        </table>
-
-        <div class="stats-box">
-          <span>Total Employees: <strong>${exportRows.length}</strong></span>
-          <span>Attended: <strong>${attended}</strong></span>
-          <span>Absent / Late: <strong>${absent}</strong></span>
-          <span>Attendance Rate: <strong>${attendRate}%</strong></span>
-        </div>
-
-        <div class="footer-section">
-          <div class="footer-note">
-            Recorded by HRD Personnel<br/>
-            Attendance checked/monitored by:
-          </div>
-          <div class="signature-line">
-            Signature Over Printed Name<br/>
-            <span class="signature-sub">Head of Office</span>
-          </div>
-        </div>
-      `;
-
-      document.body.appendChild(container);
-
-      const canvas = await window.html2canvas(container, {
-        scale:           2,
-        useCORS:         true,
-        allowTaint:      true,
-        backgroundColor: '#ffffff',
-        width:           794,
-        windowWidth:     794,
-      });
-
-      // Safe removal — check it's still in the DOM
-      if (container.parentNode === document.body) {
-        document.body.removeChild(container);
+      const ROWS_PER_PAGE = 22;
+      const chunks = [];
+      for (let i = 0; i < exportRows.length; i += ROWS_PER_PAGE) {
+        chunks.push(exportRows.slice(i, i + ROWS_PER_PAGE));
       }
+      if (chunks.length === 0) chunks.push([]);
 
       const { jsPDF } = window.jspdf;
-      const pdf       = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pageW     = pdf.internal.pageSize.getWidth();
-      const pageH     = pdf.internal.pageSize.getHeight();
-      const imgData   = canvas.toDataURL('image/jpeg', 0.95);
-      const imgW      = pageW;
-      const imgH      = (canvas.height / canvas.width) * imgW;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
 
-      let yPos = 0;
-      while (yPos < imgH) {
-        if (yPos > 0) pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, -yPos, imgW, imgH);
-        yPos += pageH;
+      for (let pageIdx = 0; pageIdx < chunks.length; pageIdx++) {
+        const currentChunk = chunks[pageIdx];
+        const isLastPage = pageIdx === chunks.length - 1;
+        const startNo = pageIdx * ROWS_PER_PAGE;
+
+        const rowsHtml = currentChunk.map((r, i) => `
+          <tr>
+            <td class="cc">${startNo + i + 1}</td>
+            <td>${r.fullName || ''}</td>
+            <td class="cc">${r.attended ? '&#10003;' : ''}</td>
+            <td class="cc">${!r.attended ? 'A' : ''}</td>
+          </tr>
+        `).join('');
+
+        // Add "onward to next page" row if not last page
+        const onwardHtml = !isLastPage ? `
+          <tr>
+            <td colspan="4" style="text-align: right; font-style: italic; font-size: 9pt; padding: 4px 8px; border: none;">
+              ...onward to next page
+            </td>
+          </tr>
+        ` : '';
+
+        // Only add padding if it's the last page and we want to maintain a minimum height, 
+        // or just let it be. The user wants 22 names limit.
+        let paddingHtml = '';
+        if (isLastPage) {
+           const padCount = Math.max(0, 5 - currentChunk.length); // small padding for last page
+           paddingHtml = Array.from({ length: padCount }).map((_, i) => `
+            <tr>
+              <td class="cc">${startNo + currentChunk.length + i + 1}</td>
+              <td></td><td></td><td></td>
+            </tr>
+          `).join('');
+        }
+
+        const attended   = exportRows.filter(r => r.attended).length;
+        const absent     = exportRows.filter(r => !r.attended).length;
+        const attendRate = exportRows.length
+          ? ((attended / exportRows.length) * 100).toFixed(1) : 0;
+
+        const container = document.createElement('div');
+        container.style.cssText = `
+          position:fixed; left:-9999px; top:0;
+          width:794px; background:#fff; padding:28px 40px;
+          font-family:Arial,Helvetica,sans-serif; font-size:11pt; color:#000;
+          box-sizing:border-box;
+        `;
+
+        container.innerHTML = `
+          <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+            .logo-left { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+            .logo-left img { height: 75px; width: auto; object-fit: contain; }
+            .logo-wordmark { height: 48px !important; }
+            .logo-divider { width: 1.5px; height: 65px; background: #cccccc; flex-shrink: 0; margin: 0 4px; }
+            .logo-placeholder { height: 75px; width: 75px; border: 1.5px dashed #bbb; display: flex; align-items: center; justify-content: center; font-size: 8pt; color: #aaa; text-align: center; line-height: 1.4; border-radius: 4px; }
+            .header-right { text-align: right; line-height: 1.6; flex-shrink: 0; max-width: 320px; }
+            .header-institution { font-size: 12pt; font-weight: bold; color: #ffffff; background-color: #003399; padding: 2px 6px 2px 12px; letter-spacing: 0.3px; display: inline-block; border-radius: 20px 0px 0px 20px; }
+            .header-sub { font-size: 9.5pt; color: #222; font-weight: 600; margin-top: 3px; }
+            .header-address { font-size: 8.5pt; color: #444; margin-top: 1px; }
+            .header-contact { font-size: 8pt; color: #555; margin-top: 2px; }
+            .title-block { text-align: center; padding: 8px 0 6px; }
+            .title-block h2 { font-size: 13pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.2px; }
+            .title-block .date-line { font-size: 11pt; margin-top: 4px; }
+            .info-rows { margin: 10px 0 6px; font-size: 10.5pt; line-height: 1.7; }
+            .instruction { font-size: 9pt; color: #333; margin-bottom: 8px; font-style: italic; }
+            table { width: 100%; border-collapse: collapse; font-size: 10.5pt; margin-bottom: 8px; }
+            th { background: #f0f0f0; font-weight: 700; border: 1px solid #000; padding: 5px 8px; text-align: center; }
+            td { border: 1px solid #555; padding: 5px 8px; height: 26px; vertical-align: middle; }
+            .cc { text-align: center; }
+            col.col-no { width: 42px; }
+            col.col-pres { width: 80px; }
+            col.col-abs { width: 100px; }
+            .stats-box { display: flex; gap: 28px; font-size: 10.5pt; border: 1px solid #ccc; padding: 9px 16px; border-radius: 4px; background: #fafafa; margin-bottom: 22px; }
+            .footer-section { margin-top: 10px; font-size: 10pt; line-height: 1.8; }
+            .footer-note { margin-bottom: 22px; }
+            .signature-line { display: inline-block; width: 240px; border-top: 1.5px solid #000; margin-top: 32px; padding-top: 3px; font-size: 10pt; font-weight: bold; }
+            .signature-sub { font-size: 9.5pt; font-weight: normal; color: #333; }
+            .page-number { text-align: center; font-size: 9pt; color: #777; margin-top: 10px; }
+          </style>
+
+          <div class="header">
+            <div class="logo-left">
+              ${pasigLogoB64 ? `<img src="${pasigLogoB64}" alt="Pasig Logo" />` : ''}
+              ${pasigWordmarkB64 ? `<img src="${pasigWordmarkB64}" alt="Pasig Wordmark" class="logo-wordmark" />` : ''}
+              ${(pasigLogoB64 || pasigWordmarkB64) && (plpLogoB64 || collegeLogoB64) ? `<div class="logo-divider"></div>` : ''}
+              ${plpLogoB64 ? `<img src="${plpLogoB64}" alt="School Logo" />` : ''}
+              ${(activeFilterCat === 'dept') && collegeLogoB64 ? `<img src="${collegeLogoB64}" alt="Department Logo" />` : ''}
+            </div>
+            <div class="header-right">
+              <div class="header-institution">${institutionName}</div>
+              <div class="header-sub">Office of the Human Resource Development</div>
+              <div class="header-address">Alkalde Jose St., Kapasigan, Pasig City, Philippines 1600</div>
+              <div class="header-contact">&#9990; 638-1014 Loc. 106 &nbsp;&nbsp;|&nbsp;&nbsp; &#9993; hrd@plpasig.edu.ph</div>
+            </div>
+          </div>
+
+          <div class="title-block">
+            <h2>Attendance for ${eventType || 'Event'}</h2>
+            <div class="date-line">
+              DATE: <strong>${dateStr}</strong>
+              ${timeStart ? ` &nbsp;|&nbsp; TIME: <strong>${formatTime(timeStart)}${timeEnd ? ' \u2013 ' + formatTime(timeEnd) : ''}</strong>` : ''}
+            </div>
+          </div>
+
+          <div class="info-rows">
+            <div><strong>NAME OF OFFICE:</strong> ${officeName}</div>
+            ${location ? `<div><strong>VENUE:</strong> ${location}</div>` : ''}
+            <div style="margin-top: 5px; font-size: 9pt; color: #555;">
+              <strong>Filter applied:</strong> 
+              ${activeFilterCat === 'all' ? 'None (All Records)' : `${activeFilterCat.toUpperCase()}: ${activeFilterVal}${activeFilterCat === 'date' ? `${dateDD}-${dateMM}-${dateYYYY}` : ''}`}
+            </div>
+          </div>
+
+          <div class="instruction">
+            <strong>&#10003;</strong> means present; if absent <strong>A</strong> and if late <strong>L</strong>.
+          </div>
+
+          <table>
+            <colgroup><col class="col-no" /><col /><col class="col-pres" /><col class="col-abs" /></colgroup>
+            <thead>
+              <tr><th>No.</th><th>Name of Employee</th><th>PRESENT</th><th>ABSENT / LATE</th></tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+              ${paddingHtml}
+              ${onwardHtml}
+            </tbody>
+          </table>
+
+          ${isLastPage ? `
+            <div class="stats-box">
+              <span>Total Employees: <strong>${exportRows.length}</strong></span>
+              <span>Attended: <strong>${attended}</strong></span>
+              <span>Absent / Late: <strong>${absent}</strong></span>
+              <span>Attendance Rate: <strong>${attendRate}%</strong></span>
+            </div>
+
+            <div class="footer-section">
+              <div class="footer-note">
+                Recorded by HRD Personnel<br/>
+                Attendance checked/monitored by:
+              </div>
+              <div class="signature-line">
+                Signature Over Printed Name<br/>
+                <span class="signature-sub">Head of Office</span>
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="page-number">Page ${pageIdx + 1} of ${chunks.length}</div>
+        `;
+
+        document.body.appendChild(container);
+
+        const canvas = await window.html2canvas(container, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: 794,
+        });
+
+        if (container.parentNode === document.body) {
+          document.body.removeChild(container);
+        }
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgW = pageW;
+        const imgH = (canvas.height / canvas.width) * imgW;
+
+        if (pageIdx > 0) pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
       }
 
       pdf.save(`${eventName.replace(/\s+/g, '_')}_Attendance.pdf`);
@@ -720,7 +675,16 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
               >
                 Check Out
               </Button>
-              <div className="ms-3">
+              <div className="ms-3 d-flex align-items-center gap-3">
+                <Form.Check 
+                  type="switch"
+                  id="include-logos-switch"
+                  label="Include Pasig Logos"
+                  checked={includePasigLogos}
+                  onChange={(e) => setIncludePasigLogos(e.target.checked)}
+                  className="fw-bold"
+                  style={{ fontSize: '13px' }}
+                />
                 <Button onClick={handleExportLog} disabled={exporting || !hasSetup} className="btn-export-pdf">
                   {exporting ? 'Exporting…' : 'Generate Report PDF'}
                 </Button>
@@ -830,7 +794,12 @@ function EventDetailsPage({ onNavigate, eventData, onUpdateData }) {
                       <tr key={index} style={{ background: index % 2 === 0 ? 'white' : '#f9fafb' }}>
                         <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8', color: '#aaa', fontSize: '11px' }}>{index + 1}</td>
                         <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8' }}>{r.employee_code}</td>
-                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8', fontWeight: '600' }}>{r.fullName}</td>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8', fontWeight: '600' }}>
+                          {formatNameLastFirst(
+                            r.fullName ||
+                            `${r.employee_lastName || r.employee_LastName || ''} ${r.employee_firstName || r.employee_FirstName || ''}`.trim()
+                          )}
+                        </td>
                         <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8' }}>{r.department_name}</td>
                         <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8', fontSize: '11px' }}>{r.checkIn || <span style={{ color: '#bbb' }}>--------</span>}</td>
                         <td style={{ padding: '9px 12px', borderBottom: '1px solid #e8e8e8', fontSize: '11px' }}>{r.checkOut || <span style={{ color: '#bbb' }}>--------</span>}</td>

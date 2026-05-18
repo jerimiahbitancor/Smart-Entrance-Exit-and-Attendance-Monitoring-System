@@ -2,10 +2,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiLogIn, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
+import { LuLogs } from "react-icons/lu";
 import '../css/LandingPage.css';
 
-// add later theattendace monitoring sa landing page....
-// This is the landing page component that serves as the entry point for users to select their desired mode (Entrance, Exit, or Log in). It provides a visually appealing interface with clear navigation options.
 
 const LandingPage = () => {
   return (
@@ -55,6 +54,19 @@ const LandingPage = () => {
                 </div>
               </div>
             </Link>
+
+            <a href="http://localhost:3000" className="landing-card-link">
+              <div className="landing-card">
+                <div className="landing-card-icon">
+                  <LuLogs size={28} />
+                </div>
+                <div className="landing-card-body">
+                  <div className="landing-card-label">Attendance Monitoring</div>
+                  <div className="landing-card-divider"></div>
+                  <div className="landing-card-desc">Track and Record Employee attendance in real time.</div>
+                </div>
+              </div>
+            </a>
 
             <Link to="/login" className="landing-card-link">
               <div className="landing-card">
