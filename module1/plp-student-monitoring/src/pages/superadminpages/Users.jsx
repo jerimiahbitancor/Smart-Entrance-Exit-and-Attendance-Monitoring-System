@@ -28,7 +28,7 @@ function Users() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://192.168.0.10:5000/api/users', {
+      const response = await fetch('http://localhost:5000/api/users', {
         credentials: 'include'
       });
       if (!response.ok) {
@@ -207,7 +207,7 @@ function Users() {
         }
       });
       
-      const response = await fetch(`http://192.168.0.10:5000/api/users/archive/${encodeURIComponent(email)}`, {
+      const response = await fetch(`http://localhost:5000/api/users/archive/${encodeURIComponent(email)}`, {
         method: 'PUT',
         credentials: 'include'
       });
@@ -275,7 +275,7 @@ function Users() {
         }
       });
       
-      const response = await fetch('http://192.168.0.10:5000/api/users/archive/bulk', {
+      const response = await fetch('http://localhost:5000/api/users/archive/bulk', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

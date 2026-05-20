@@ -42,7 +42,7 @@ app.use('/api/notifications', notificationsRoute);
 app.use('/api/analytics', studentTabAnalytics);
 
 // Start server
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log('═══════════════════════════════════════════════════════════════');
   console.log(`🚀 [SERVER] Running on port ${PORT}`);
   console.log('═══════════════════════════════════════════════════════════════');

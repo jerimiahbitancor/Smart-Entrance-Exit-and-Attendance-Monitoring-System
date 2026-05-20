@@ -22,17 +22,17 @@ function EditProgramTab() {
 
  const fetchTotalPrograms = async () => {
     try {
-        const response = await fetch('http:///192.168.0.10:5000/api/programs/active/count');
+        const response = await fetch('http://localhost:5000/api/programs/active/count');
         const data = await response.json();
         setTotalPrograms(data.total);
     } catch (error) {
         console.error('Error fetching total programs:', error);
     }
 };
-  // Fetch departments from backend
+  // Fetch departments from backend (only active departments)
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('http:///192.168.0.10:5000/api/departments');
+      const response = await fetch('http://localhost:5000/api/departments?status=Active');
       const data = await response.json();
       setDepartments(data);
     } catch (error) {
@@ -50,7 +50,7 @@ function EditProgramTab() {
       if (programType && programType !== 'All') params.append('program_type', programType);
       params.append('program_status', 'Active');
       
-      const response = await fetch(`http://192.168.0.10:5000/api/programs?${params}`);
+      const response = await fetch(`http://localhost:5000/api/programs?${params}`);
       const data = await response.json();
       setPrograms(data);
       setCurrentPage(1);
@@ -93,7 +93,7 @@ function EditProgramTab() {
     });
 
     try {
-      const response = await fetch(`http://192.168.0.10:5000/api/programs/${editingProgram.id}`, {
+      const response = await fetch(`http://localhost:5000/api/programs/${editingProgram.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)

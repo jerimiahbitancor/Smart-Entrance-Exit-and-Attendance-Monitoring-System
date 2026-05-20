@@ -40,7 +40,7 @@ import {
 
 class TimeService {
   static async fetchServerTime() {
-    const res = await fetch("http://192.168.0.10:5000/api/time");
+    const res = await fetch("http://localhost:5000/api/time");
     const data = await res.json();
     return new Date(data.serverTime);
   }
@@ -67,7 +67,7 @@ class TimeService {
 class DashboardService {
   static async fetchMetrics() {
     try {
-      const res = await fetch("http://192.168.0.10:5000/api/analytics/metrics");
+      const res = await fetch("http://localhost:5000/api/analytics/metrics");
       if (!res.ok) throw new Error("no metrics");
       const json = await res.json();
       // Accept direct payload or envelope
@@ -135,7 +135,7 @@ class DashboardService {
 
   static async fetchNotifications() {
     try {
-      const res = await fetch("http://192.168.0.10:5000/api/notifications");
+      const res = await fetch("http://localhost:5000/api/notifications");
       if (!res.ok) throw new Error("Failed to fetch notifications");
       const json = await res.json();
       return json.data ?? json.notifications ?? json;
@@ -691,7 +691,7 @@ function SuperDashboard() {
   const fetchUsers = useCallback(async () => {
     setUsersLoading(true);
     try {
-      const res = await fetch("http://192.168.0.10:5000/api/users");
+      const res = await fetch("http://localhost:5000/api/users");
       if (!res.ok) throw new Error("Failed to fetch users");
       const json = await res.json();
       const data = json.data ?? json.users ?? json;
