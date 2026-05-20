@@ -70,7 +70,7 @@ export default function ForgotPasswordStep2() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.0.10:5000/api/forgot-password/reset', {
+      const response = await fetch('http://localhost:5000/api/forgot-password/reset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

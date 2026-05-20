@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkSession = async () => {
     try {
-      const response = await fetch('http://192.168.0.10:5000/api/check-session', {
+      const response = await fetch('http://localhost:5000/api/check-session', {
         credentials: 'include'
       });
       const data = await response.json();
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
   // ── role is now accepted and forwarded to the backend ──────────────────────
   const login = async (email, password, role) => {
     try {
-      const response = await fetch('http://192.168.0.10:5000/api/login', {
+      const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch('http://192.168.0.10:5000/api/logout', {
+      await fetch('http://localhost:5000/api/logout', {
         method: 'POST',
         credentials: 'include'
       });

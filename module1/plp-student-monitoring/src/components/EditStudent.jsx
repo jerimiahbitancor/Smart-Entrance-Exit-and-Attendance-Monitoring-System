@@ -107,7 +107,7 @@ function EditStudent({ student, onClose }) {
   useEffect(() => {
     const fetchActiveDepartments = async () => {
       try {
-        const response = await fetch('http://192.168.0.10:5000/api/departments?status=Active');
+        const response = await fetch('http://localhost:5000/api/departments?status=Active');
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         setActiveDepartments(data);
@@ -123,7 +123,7 @@ function EditStudent({ student, onClose }) {
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
-        const res = await fetch('http://192.168.0.10:5000/api/programs?programStatus=Active');
+        const res = await fetch('http://localhost:5000/api/programs?programStatus=Active');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setPrograms(Array.isArray(data) ? data : []);
@@ -164,7 +164,7 @@ function EditStudent({ student, onClose }) {
       setSavingInfo(true);
 
       await axios.put(
-        `http://192.168.0.10:5000/api/students/${student.student_id}`,
+        `http://localhost:5000/api/students/${student.student_id}`,
         {
           first_name: firstName.trim().toUpperCase(),
           last_name: lastName.trim().toUpperCase(),
@@ -246,7 +246,7 @@ function EditStudent({ student, onClose }) {
     try {
       setIsScanning(true);
       setScanError(false);
-      await axios.post("http://192.168.0.10:5000/api/validate-face", { images: validImages });
+      await axios.post("http://localhost:5000/api/validate-face", { images: validImages });
       setScanComplete(true);
     } catch (err) {
       console.error(err);
@@ -263,7 +263,7 @@ function EditStudent({ student, onClose }) {
     
     // For existing student, only send student_id and images
     // No need to send first_name, last_name, program, etc. if they already exist
-    await axios.post("http://192.168.0.10:5000/api/register", {
+    await axios.post("http://localhost:5000/api/register", {
       student_id: student.student_id,
       images: validImages,
       // Don't send other fields - let backend use existing data

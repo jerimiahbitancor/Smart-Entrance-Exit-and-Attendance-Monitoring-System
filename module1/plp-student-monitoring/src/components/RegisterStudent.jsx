@@ -84,7 +84,7 @@ function RegisterStudent({ onClose, onSuccess }) {
     const fetchData = async () => {
       setLoadingDepartments(true);
       try {
-        const progResponse = await fetch('http://192.168.0.10:5000/api/programs?programStatus=Active');
+        const progResponse = await fetch('http://localhost:5000/api/programs?programStatus=Active');
         if (!progResponse.ok) throw new Error(`HTTP ${progResponse.status}`);
         const progData = await progResponse.json();
         setPrograms(Array.isArray(progData) ? progData : []);
@@ -357,7 +357,7 @@ function RegisterStudent({ onClose, onSuccess }) {
       }
 
       const response = await axios.post(
-        "http://192.168.0.10:5000/api/validate-face",
+        "http://localhost:5000/api/validate-face",
         { images: validImages }
       );
 
@@ -471,7 +471,7 @@ function RegisterStudent({ onClose, onSuccess }) {
       const validImages = photoPreviews.filter(img => img !== null);
 
       const response = await axios.post(
-        "http://192.168.0.10:5000/api/register",
+        "http://localhost:5000/api/register",
         {
           student_id: studentId,
           email: emailId.trim().toLowerCase(),
